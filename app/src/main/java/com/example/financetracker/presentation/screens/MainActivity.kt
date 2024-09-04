@@ -16,12 +16,12 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.financetracker.R
+import com.example.financetracker.data.dataprovider.local.TransactionDatabase
 import com.example.financetracker.data.models.local.TransactionModel
 import com.example.financetracker.data.repository.TransactionRepository
 import com.example.financetracker.presentation.ui.theme.FinanceTrackerTheme
@@ -78,6 +78,16 @@ class MainActivity : ComponentActivity() {
         }
         CoroutineScope(Dispatchers.IO).launch {
             txnState.value = readExcelFile()
+        }
+
+        getDatabaseInstance()
+    }
+
+    private fun getDatabaseInstance() {
+        CoroutineScope(Dispatchers.IO).launch {
+            val db = TransactionDatabase.getDatabase(applicationContext)
+            val items =  db.transactionDao().getAllTransaction()
+            println("Items : ${items.size}")
         }
     }
 
