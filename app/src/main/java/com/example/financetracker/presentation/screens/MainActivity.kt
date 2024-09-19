@@ -3,6 +3,7 @@ package com.example.financetracker.presentation.screens
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.FabPosition
 import androidx.compose.material.FloatingActionButton
@@ -20,14 +21,17 @@ import com.example.financetracker.presentation.screens.navigation.MainScreenBott
 import com.example.financetracker.presentation.screens.navigation.Routes
 import com.example.financetracker.presentation.ui.theme.FinanceTrackerTheme
 import com.example.financetracker.presentation.viewmodels.AppViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    private val viewModel: AppViewModel = AppViewModel()
+    private val viewModel: AppViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -1,7 +1,9 @@
 plugins {
+    id("kotlin-kapt")
     id("com.google.devtools.ksp")
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -84,5 +86,12 @@ dependencies {
     annotationProcessor("androidx.room:room-compiler:$room_version")
     ksp("androidx.room:room-compiler:$room_version")
 
+    implementation("com.google.dagger:hilt-android:2.51.1")
+    kapt("com.google.dagger:hilt-android-compiler:2.51.1")
+
     implementation("com.google.code.gson:gson:2.8.8")
+}
+
+kapt {
+    correctErrorTypes = true
 }

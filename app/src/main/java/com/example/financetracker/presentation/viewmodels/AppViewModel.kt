@@ -6,11 +6,16 @@ import androidx.lifecycle.ViewModel
 import com.example.financetracker.R
 import com.example.financetracker.data.models.local.TransactionModel
 import com.example.financetracker.data.repository.TransactionRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class AppViewModel: ViewModel() {
+@HiltViewModel
+class AppViewModel @Inject constructor(
+
+) : ViewModel() {
 
     private val _isLoading = mutableStateOf(false)
 
@@ -19,7 +24,7 @@ class AppViewModel: ViewModel() {
     val isLoading get() = _isLoading
 
 
-    fun getDataFromFile(context: Context){
+    fun getDataFromFile(context: Context) {
         CoroutineScope(Dispatchers.IO).launch {
             _txnState.value = readExcelFile(context)
         }
@@ -29,7 +34,7 @@ class AppViewModel: ViewModel() {
 
 
         setLoadingState(true)
-        val inputStream =  context.resources.openRawResource(R.raw.feb_2023_2)
+        val inputStream = context.resources.openRawResource(R.raw.feb_2023_2)
 
         val repo = TransactionRepository()
         setLoadingState(false)
@@ -37,7 +42,7 @@ class AppViewModel: ViewModel() {
     }
 
 
-    fun setLoadingState(bool: Boolean){
+    fun setLoadingState(bool: Boolean) {
         _isLoading.value = bool
     }
 }
