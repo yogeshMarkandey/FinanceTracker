@@ -17,4 +17,5 @@ interface TransactionRepository {
     fun getAllCategories(): Flow<List<Category>>
     fun updateCategory(category: Category)
     fun addCategory(category: Category)
+    fun getCategoryById(categoryId: Int) : Category
 }

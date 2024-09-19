@@ -41,7 +41,18 @@ data class Category(
             )
         }
 
-        fun getDefaults() : List<Category> {
+        fun newInstance() = Category(
+            id = -1,
+            title = "",
+            type = PaymentType.Expense,
+            notes = "",
+            createdOn = Date(),
+            icon = "",
+            color = "",
+            updatedOn = Date(),
+        )
+
+        fun getDefaults(): List<Category> {
             return arrayListOf(
                 Category(
                     id = 1,

@@ -1,6 +1,5 @@
 package com.example.financetracker.presentation.viewmodels
 
-import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -45,22 +44,6 @@ class AppViewModel @Inject constructor(
             }
         }
     }
-
-    fun getDataFromFile(context: Context) {
-        CoroutineScope(Dispatchers.IO).launch {
-//            _txnState.value = readExcelFile(context)
-        }
-    }
-
-//    fun readExcelFile(context: Context): List<TransactionModel> {
-//        setLoadingState(true)
-//        val inputStream = context.resources.openRawResource(R.raw.feb_2023_2)
-//
-//
-//        setLoadingState(false)
-//        return transactionRepository.getTransactionFromExcelFile(inputStream)
-//    }
-
 
     fun setLoadingState(bool: Boolean) {
         _isLoading.value = bool

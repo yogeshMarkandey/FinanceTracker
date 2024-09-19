@@ -13,9 +13,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.financetracker.presentation.screens.home.BottomNavigationBar
 import com.example.financetracker.presentation.screens.home.EditCategoryScreen
 import com.example.financetracker.presentation.screens.home.EditTransactionScreen
@@ -44,8 +46,14 @@ fun MainScreen(
             )
         }
 
-        composable(route = Routes.EditCategoryScreen) {
-            EditCategoryScreen(navController = mainNavController, appViewModel = viewModel)
+        composable(route = Routes.EditCategoryScreen, arguments = listOf(
+            navArgument("categoryId") {
+                defaultValue = -1
+                type = NavType.IntType
+            }
+        )) {
+            val id = it.arguments?.getInt("categoryId")
+            EditCategoryScreen(navController = mainNavController, categoryId = id)
         }
 
         composable(route = Routes.ROOT) {

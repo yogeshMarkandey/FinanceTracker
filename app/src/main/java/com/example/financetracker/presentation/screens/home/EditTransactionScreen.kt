@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -37,6 +38,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.outlined.DateRange
@@ -117,6 +119,8 @@ fun EditTransactionScreen(
         rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
     val coroutineScope = rememberCoroutineScope()
 
+    var categoryBottomSheetEditMode by remember { mutableStateOf(false) }
+
     ModalBottomSheetLayout(
         sheetState = categorySheetState,
         sheetContent = {
@@ -124,6 +128,15 @@ fun EditTransactionScreen(
                 allCategory = allCategories,
                 selectedCategory = selectedCategory!!,
                 onItemSelected = { category ->
+                    if (categoryBottomSheetEditMode) {
+                        val route = Routes.routeEditCategory(categoryId = category.id)
+                        navController.navigate(
+                            route = route
+                        )
+
+                        return@CategoryBottomSheetContent
+                    }
+
                     appViewModel.updateSelectedCategory(category)
                     coroutineScope.launch {
                         if (categorySheetState.isVisible) {
@@ -132,9 +145,14 @@ fun EditTransactionScreen(
                     }
                 },
                 onAddNewCategory = {
+                    val route = Routes.routeEditCategory()
                     navController.navigate(
-                        route = Routes.EditCategoryScreen
+                        route = route
                     )
+                },
+                editMode = categoryBottomSheetEditMode,
+                onToggleMode = {
+                    categoryBottomSheetEditMode = it
                 }
             )
         },
@@ -266,28 +284,58 @@ fun EditTransactionScreen(
 
 @Composable
 fun CategoryBottomSheetContent(
+    modifier: Modifier = Modifier,
     allCategory: List<Category>,
     selectedCategory: Category,
     onItemSelected: (Category) -> Unit,
-    onAddNewCategory: () -> Unit
+    onAddNewCategory: () -> Unit,
+    editMode: Boolean,
+    onToggleMode: (Boolean) -> Unit
 ) {
+
+
     Surface {
         Column(
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxWidth()
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(text = "Select Category")
-                IconButton(onClick = {
-                    onAddNewCategory()
-                }) {
-                    Icon(Icons.Default.Add, contentDescription = "Add Category Button")
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                )
+                {
+                    IconButton(
+                        onClick = {
+                            onToggleMode(!editMode)
+                        },
+                        modifier = Modifier.size(64.dp),
+
+                        ) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .background(if (editMode) Color.Gray else Color.White)
+                                .padding(8.dp),
+                        ) {
+                            Icon(
+                                Icons.Default.Edit,
+                                contentDescription = "Toggled On",
+                                tint = if (editMode) Color.White else Color.Gray,
+                            )
+                        }
+                    }
+                    IconButton(onClick = {
+                        onAddNewCategory()
+                    }) {
+                        Icon(Icons.Default.Add, contentDescription = "Add Category Button")
+                    }
                 }
             }
             LazyVerticalGrid(
@@ -335,7 +383,6 @@ fun CategoryGridItem(category: Category, isSelected: Boolean, onClick: () -> Uni
     }
 }
 
-
 @Preview
 @Composable
 private fun CategoryBottomSheetContentPreview() {
@@ -345,7 +392,9 @@ private fun CategoryBottomSheetContentPreview() {
             allCategory = list,
             selectedCategory = list[1],
             onItemSelected = {},
-            onAddNewCategory = {}
+            onAddNewCategory = {},
+            editMode = false,
+            onToggleMode = {}
         )
     }
 }

@@ -2,6 +2,7 @@ package com.example.financetracker.data.repository
 
 import com.example.financetracker.data.dataprovider.local.TransactionDatabase
 import com.example.financetracker.data.models.local.TransactionModel
+import com.example.financetracker.data.utils.CustomException
 import com.example.financetracker.domain.model.local.Category
 import com.example.financetracker.domain.model.local.Category.Companion.toCategory
 import com.example.financetracker.domain.model.local.Category.Companion.toCategoryEntity
@@ -21,7 +22,6 @@ class TransactionRepositoryImpl @Inject constructor(
 ) : TransactionRepository {
 
     override fun getTransactionFromExcelFile(inputStream: InputStream): List<TransactionModel> {
-        val TAG = "TransactionRepository.KT"
 
         val list = mutableListOf<TransactionModel>()
 
@@ -80,10 +80,18 @@ class TransactionRepositoryImpl @Inject constructor(
     }
 
     override fun updateCategory(category: Category) {
-        TODO("Not yet implemented")
+        db.categoryDao().updateCategory(category.toCategoryEntity())
     }
 
     override fun addCategory(category: Category) {
-       db.categoryDao().addCategory(category.toCategoryEntity())
+        db.categoryDao().addCategory(category.toCategoryEntity())
+    }
+
+    override fun getCategoryById(categoryId: Int): Category {
+        val category = db.categoryDao().getCategoryById(categoryId)
+            ?: throw CustomException(
+                errorMessage = "Category Not Found",
+            )
+        return category.toCategory()
     }
 }
