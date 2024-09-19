@@ -9,7 +9,7 @@ import com.example.financetracker.data.models.TransactionEntity
 import com.example.financetracker.data.models.local.BudgetEntity
 import com.example.financetracker.data.models.local.CategoryEntity
 import com.example.financetracker.data.models.local.CategoryWiseBudgetEntity
-import com.example.financetracker.data.models.local.PaymentSource
+import com.example.financetracker.data.models.local.PaymentSourceEntity
 import com.example.financetracker.data.models.local.TagEntity
 import com.example.financetracker.data.models.local.TransactionsDAO
 
@@ -18,7 +18,7 @@ import com.example.financetracker.data.models.local.TransactionsDAO
         TransactionEntity::class,
         BudgetEntity::class,
         CategoryEntity::class,
-        PaymentSource::class,
+        PaymentSourceEntity::class,
         TagEntity::class,
         CategoryWiseBudgetEntity::class
     ),

@@ -18,7 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.example.financetracker.presentation.ui.theme.FinanceTrackerTheme
 import com.example.financetracker.presentation.viewmodels.AppViewModel
 import com.example.financetracker.presentation.widgets.TransactionCard
 
@@ -34,41 +33,39 @@ fun HomeScreen(
     val txnState = remember {
         viewModel.txnState
     }
-    FinanceTrackerTheme {
-        Surface(
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        Column(
             modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                AnimatedVisibility(visible = isLoading.value) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(
-                            color = Color.Black,
-                            modifier = Modifier.size(40.dp)
+            AnimatedVisibility(visible = isLoading.value) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        color = Color.Black,
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
+            }
+
+            AnimatedVisibility(visible = !isLoading.value) {
+                LazyColumn {
+                    items(txnState.value.size) { index ->
+                        val c = txnState.value[index]
+                        TransactionCard(
+                            data = c,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp, horizontal = 8.dp)
                         )
                     }
-                }
 
-                AnimatedVisibility(visible = !isLoading.value) {
-                    LazyColumn {
-                        items(txnState.value.size) { index ->
-                            val c = txnState.value[index]
-                            TransactionCard(
-                                data = c,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 8.dp, horizontal = 8.dp)
-                            )
-                        }
-
-                    }
                 }
             }
         }

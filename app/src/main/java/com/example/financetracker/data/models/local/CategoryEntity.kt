@@ -7,7 +7,7 @@ import java.util.Date
 @Entity(tableName = "category")
 data class CategoryEntity (
     @PrimaryKey(autoGenerate = true) val id: Int,
-    val title: Int,
+    val title: String,
     val type: PaymentType,
     val notes: String,
     val createdOn: Date,
