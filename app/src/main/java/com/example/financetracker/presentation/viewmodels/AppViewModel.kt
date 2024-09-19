@@ -33,12 +33,14 @@ class AppViewModel @Inject constructor(
     val selectedCategory get() = _selectedCategories
 
 
-    init {
-        updateCategoryList(Category.getDefaults())
-        updateSelectedCategory(_allCategories.value[0])
+    fun initViewModel() {
+        Log.d(TAG, "Init Called: ")
         CoroutineScope(Dispatchers.IO).launch {
             allCategoryUseCase.execute().collect { list ->
-                updateCategoryList(list)
+                updateCategoryList(list.ifEmpty { Category.getDefaults() })
+                if (selectedCategory.value == null) {
+                    updateSelectedCategory(_allCategories.value[0])
+                }
                 Log.d(TAG, "Called: list length: ${list.size}")
             }
         }
@@ -71,5 +73,11 @@ class AppViewModel @Inject constructor(
 
     fun updateSelectedCategory(category: Category) {
         _selectedCategories.value = category
+    }
+
+    fun updateCategory(category: Category) {
+        CoroutineScope(Dispatchers.IO).launch {
+            addCategoryUseCase.execute(category)
+        }
     }
 }

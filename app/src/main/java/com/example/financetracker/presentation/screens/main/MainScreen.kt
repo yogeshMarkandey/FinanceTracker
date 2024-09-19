@@ -8,6 +8,7 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -16,6 +17,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.financetracker.presentation.screens.home.BottomNavigationBar
+import com.example.financetracker.presentation.screens.home.EditCategoryScreen
 import com.example.financetracker.presentation.screens.home.EditTransactionScreen
 import com.example.financetracker.presentation.screens.navigation.MainScreenBottomNavigationGraph
 import com.example.financetracker.presentation.screens.navigation.Routes
@@ -28,6 +30,11 @@ fun MainScreen(
     viewModel: AppViewModel = hiltViewModel(),
 ) {
     val mainNavController = rememberNavController()
+
+    LaunchedEffect(key1 = Unit) {
+        viewModel.initViewModel()
+    }
+
     NavHost(navController = mainNavController, startDestination = Routes.ROOT) {
         composable(Routes.EditTransactionScreen) {
             EditTransactionScreen(
@@ -35,6 +42,10 @@ fun MainScreen(
                 appViewModel = viewModel,
                 navController = mainNavController,
             )
+        }
+
+        composable(route = Routes.EditCategoryScreen) {
+            EditCategoryScreen(navController = mainNavController, appViewModel = viewModel)
         }
 
         composable(route = Routes.ROOT) {

@@ -60,6 +60,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.financetracker.data.models.local.PaymentType
 import com.example.financetracker.domain.model.local.Category
+import com.example.financetracker.presentation.screens.navigation.Routes
 import com.example.financetracker.presentation.ui.theme.FinanceTrackerTheme
 import com.example.financetracker.presentation.viewmodels.AppViewModel
 import kotlinx.coroutines.launch
@@ -129,6 +130,11 @@ fun EditTransactionScreen(
                             categorySheetState.hide()
                         }
                     }
+                },
+                onAddNewCategory = {
+                    navController.navigate(
+                        route = Routes.EditCategoryScreen
+                    )
                 }
             )
         },
@@ -262,7 +268,8 @@ fun EditTransactionScreen(
 fun CategoryBottomSheetContent(
     allCategory: List<Category>,
     selectedCategory: Category,
-    onItemSelected: (Category) -> Unit
+    onItemSelected: (Category) -> Unit,
+    onAddNewCategory: () -> Unit
 ) {
     Surface {
         Column(
@@ -277,7 +284,9 @@ fun CategoryBottomSheetContent(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(text = "Select Category")
-                IconButton(onClick = { /*TODO*/ }) {
+                IconButton(onClick = {
+                    onAddNewCategory()
+                }) {
                     Icon(Icons.Default.Add, contentDescription = "Add Category Button")
                 }
             }
@@ -335,7 +344,8 @@ private fun CategoryBottomSheetContentPreview() {
         CategoryBottomSheetContent(
             allCategory = list,
             selectedCategory = list[1],
-            onItemSelected = {}
+            onItemSelected = {},
+            onAddNewCategory = {}
         )
     }
 }
@@ -344,7 +354,6 @@ private fun CategoryBottomSheetContentPreview() {
 @Composable
 private fun EditScreenPreview() {
     val navController = rememberNavController()
-
     FinanceTrackerTheme(darkTheme = false, dynamicColor = true) {
         EditTransactionScreen(
             modifier = Modifier,
