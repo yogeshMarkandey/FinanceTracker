@@ -11,7 +11,8 @@ import com.example.financetracker.data.models.local.CategoryEntity
 import com.example.financetracker.data.models.local.CategoryWiseBudgetEntity
 import com.example.financetracker.data.models.local.PaymentSourceEntity
 import com.example.financetracker.data.models.local.TagEntity
-import com.example.financetracker.data.models.local.TransactionsDAO
+import com.example.financetracker.data.models.local.dao.CategoryDAO
+import com.example.financetracker.data.models.local.dao.TransactionsDAO
 
 @Database(
     entities = arrayOf(
@@ -28,6 +29,8 @@ import com.example.financetracker.data.models.local.TransactionsDAO
 @TypeConverters(DatabaseTypeConverters::class)
 abstract class TransactionDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionsDAO
+
+    abstract fun categoryDao(): CategoryDAO
 
     companion object {
         @Volatile

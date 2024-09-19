@@ -55,6 +55,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.financetracker.data.models.local.PaymentType
@@ -68,7 +69,7 @@ import java.util.Calendar
 @Composable
 fun EditTransactionScreen(
     modifier: Modifier,
-    appViewModel: AppViewModel,
+    appViewModel: AppViewModel = hiltViewModel(),
     navController: NavController,
 ) {
 
@@ -80,12 +81,12 @@ fun EditTransactionScreen(
         mutableStateOf(PaymentType.Expense)
     }
 
-    var allCategories by remember {
-        mutableStateOf(Category.getDefaults())
+    val allCategories by remember {
+        appViewModel.allCategory
     }
 
-    var selectedCategory by remember {
-        mutableStateOf(allCategories[0])
+    val selectedCategory by remember {
+        appViewModel.selectedCategory
     }
 
     val calendar = Calendar.getInstance()
@@ -120,9 +121,9 @@ fun EditTransactionScreen(
         sheetContent = {
             CategoryBottomSheetContent(
                 allCategory = allCategories,
-                selectedCategory = selectedCategory,
+                selectedCategory = selectedCategory!!,
                 onItemSelected = { category ->
-                    selectedCategory = category
+                    appViewModel.updateSelectedCategory(category)
                     coroutineScope.launch {
                         if (categorySheetState.isVisible) {
                             categorySheetState.hide()
@@ -140,7 +141,7 @@ fun EditTransactionScreen(
                 TopAppBar(
                     title = {
                         Row {
-                            IconButton(onClick = { navController.popBackStack()}) {
+                            IconButton(onClick = { navController.popBackStack() }) {
                                 Icon(Icons.Default.ArrowBack, contentDescription = "Back button")
                             }
                         }
@@ -203,7 +204,7 @@ fun EditTransactionScreen(
                         Icon(Icons.Default.ShoppingCart, contentDescription = "Category Icon")
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
-                            text = selectedCategory.title,
+                            text = selectedCategory?.title ?: "NA",
                         )
                     }
 
@@ -347,7 +348,6 @@ private fun EditScreenPreview() {
     FinanceTrackerTheme(darkTheme = false, dynamicColor = true) {
         EditTransactionScreen(
             modifier = Modifier,
-            appViewModel = AppViewModel(),
             navController = navController,
         )
     }
