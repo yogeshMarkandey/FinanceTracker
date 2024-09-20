@@ -9,11 +9,13 @@ import com.example.financetracker.data.usecase.category.AddCategoryUseCaseImpl
 import com.example.financetracker.data.usecase.category.GetAllCategoryUseCaseImpl
 import com.example.financetracker.data.usecase.category.GetCategoryByIdUseCaseImpl
 import com.example.financetracker.data.usecase.category.UpdateCategoryUseCaseImpl
+import com.example.financetracker.data.usecase.color.GetStandardColorsUseCaseImpl
 import com.example.financetracker.domain.model.repository.TransactionRepository
 import com.example.financetracker.domain.model.usecase.category.AddCategoryUseCase
 import com.example.financetracker.domain.model.usecase.category.GetAllCategoryUseCase
 import com.example.financetracker.domain.model.usecase.category.GetCategoryByIdUseCase
 import com.example.financetracker.domain.model.usecase.category.UpdateCategoryUseCase
+import com.example.financetracker.domain.model.usecase.color.GetStandardColorsUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -67,5 +69,10 @@ object AppModule {
     @Provides
     fun getUpdateCategoryUseCase(transactionRepository: TransactionRepository): UpdateCategoryUseCase {
         return UpdateCategoryUseCaseImpl(transactionRepository)
+    }
+
+    @Provides
+    fun getGetStandardColorUseCase(@ApplicationContext context: Context): GetStandardColorsUseCase {
+        return GetStandardColorsUseCaseImpl(context)
     }
 }

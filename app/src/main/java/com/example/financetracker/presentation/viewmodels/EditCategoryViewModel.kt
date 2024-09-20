@@ -1,14 +1,17 @@
 package com.example.financetracker.presentation.viewmodels
 
+import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.example.financetracker.data.models.local.PaymentType
 import com.example.financetracker.data.utils.CustomException
 import com.example.financetracker.domain.model.local.Category
+import com.example.financetracker.domain.model.local.StandardColor
 import com.example.financetracker.domain.model.usecase.category.AddCategoryUseCase
 import com.example.financetracker.domain.model.usecase.category.GetAllCategoryUseCase
 import com.example.financetracker.domain.model.usecase.category.GetCategoryByIdUseCase
 import com.example.financetracker.domain.model.usecase.category.UpdateCategoryUseCase
+import com.example.financetracker.domain.model.usecase.color.GetStandardColorsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -21,7 +24,8 @@ class EditCategoryViewModel @Inject constructor(
     private val allCategoryUseCase: GetAllCategoryUseCase,
     private val addCategoryUseCase: AddCategoryUseCase,
     private val getCategoryByIdUseCase: GetCategoryByIdUseCase,
-    private val updateCategoryUseCase: UpdateCategoryUseCase
+    private val updateCategoryUseCase: UpdateCategoryUseCase,
+    private val getStandardColorsUseCase: GetStandardColorsUseCase,
 ) : ViewModel() {
 
     private val TAG = this::class.java.name
@@ -36,13 +40,16 @@ class EditCategoryViewModel @Inject constructor(
     val error get() = _error
     val category = mutableStateOf<Category?>(null)
     val categoryTitle = mutableStateOf("")
+    val isEditMode = mutableStateOf(false)
+    val notesText = mutableStateOf("")
+    val paymentType = mutableStateOf(PaymentType.Expense)
+    val icon = mutableStateOf("")
+    val color = mutableStateOf("")
+    val availableColors = mutableStateOf(emptyList<StandardColor>())
+    val selectedColor = mutableStateOf(StandardColor.red())
 
-    fun initViewModel() {
-        CoroutineScope(Dispatchers.IO).launch {
-            allCategoryUseCase.execute().collect { list ->
-                updateCategoryList(list.ifEmpty { Category.getDefaults() })
-            }
-        }
+    init {
+        getStandardColors()
     }
 
     fun updateCategoryList(list: List<Category>) {
@@ -53,9 +60,15 @@ class EditCategoryViewModel @Inject constructor(
         categoryTitle.value = title
     }
 
-    fun addOrEditCategory() {
-        val isEdit = category.value != null
+    fun updateNotesText(value: String) {
+        notesText.value = value
+    }
 
+    fun updateSelectedColor(color: StandardColor) {
+        selectedColor.value = color
+    }
+
+    fun addOrEditCategory() {
         val id = category.value?.id ?: System.currentTimeMillis().toInt()
 
         val category = Category(
@@ -63,7 +76,7 @@ class EditCategoryViewModel @Inject constructor(
             title = categoryTitle.value,
             type = category.value?.type ?: PaymentType.Expense,
             notes = "",
-            createdOn = if (isEdit) category.value!!.createdOn else Date(),
+            createdOn = if (isEditMode.value) category.value!!.createdOn else Date(),
             icon = "",
             color = "",
             updatedOn = Date(),
@@ -71,7 +84,7 @@ class EditCategoryViewModel @Inject constructor(
 
         CoroutineScope(Dispatchers.IO).launch {
 
-            if (isEdit) {
+            if (isEditMode.value) {
                 updateCategoryUseCase.execute(category)
                 return@launch
             }
@@ -91,15 +104,37 @@ class EditCategoryViewModel @Inject constructor(
             try {
                 val result = getCategoryByIdUseCase.execute(id)
                 category.value = result
-                categoryTitle.value = result.title
+                updateCategoryDetails(result)
             } catch (e: CustomException) {
                 _error.value = e.errorMessage ?: "Something Went Wrong"
-                updateLoadingState(false)
             } catch (e: Exception) {
                 _error.value = e.message ?: "Something Went Wrong"
-                updateLoadingState(false)
             }
+            isEditMode.value = category.value != null
             updateLoadingState(false)
         }
+    }
+
+    fun getStandardColors() {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                availableColors.value = getStandardColorsUseCase.execute()
+            } catch (e: Exception) {
+                Log.e(TAG, "getStandardColors: ${e.message}", e)
+            }
+        }
+    }
+
+    private fun updateCategoryDetails(category: Category) {
+        categoryTitle.value = category.title
+        notesText.value = category.notes
+        paymentType.value = category.type
+        color.value = category.color
+        icon.value = category.icon
+        selectedColor.value =
+            availableColors.value.firstOrNull {
+                it.hex == category.color
+            } ?: StandardColor.red()
+
     }
 }
