@@ -1,5 +1,8 @@
 package com.example.financetracker.domain.model.local
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Edit
 import com.example.financetracker.data.models.local.CategoryEntity
 import com.example.financetracker.data.models.local.PaymentType
 import java.util.Date
@@ -11,7 +14,7 @@ data class Category(
     val notes: String,
     val createdOn: Date,
     val icon: String,
-    val color: String,
+    val color: StandardColor,
     val updatedOn: Date,
 ) {
     companion object {
@@ -23,7 +26,7 @@ data class Category(
                 notes = notes,
                 createdOn = createdOn,
                 icon = icon,
-                color = color,
+                color = StandardColor(color, color),
                 updatedOn = updatedOn
             )
         }
@@ -36,7 +39,7 @@ data class Category(
                 notes = notes,
                 createdOn = createdOn,
                 icon = icon,
-                color = color,
+                color = color.hex,
                 updatedOn = updatedOn
             )
         }
@@ -48,7 +51,7 @@ data class Category(
             notes = "",
             createdOn = Date(),
             icon = "",
-            color = "",
+            color = StandardColor.red(),
             updatedOn = Date(),
         )
 
@@ -60,8 +63,8 @@ data class Category(
                     type = PaymentType.Expense,
                     notes = "",
                     createdOn = Date(),
-                    icon = "",
-                    color = "",
+                    icon = Icons.Default.Add.name,
+                    color = StandardColor.red(),
                     updatedOn = Date(),
                 ),
                 Category(
@@ -70,8 +73,8 @@ data class Category(
                     type = PaymentType.Expense,
                     notes = "",
                     createdOn = Date(),
-                    icon = "",
-                    color = "",
+                    icon = Icons.Default.Edit.name,
+                    color = StandardColor.red(),
                     updatedOn = Date(),
                 ),
                 Category(
@@ -81,7 +84,7 @@ data class Category(
                     notes = "",
                     createdOn = Date(),
                     icon = "",
-                    color = "",
+                    color = StandardColor.red(),
                     updatedOn = Date(),
                 ),
                 Category(
@@ -91,7 +94,7 @@ data class Category(
                     notes = "",
                     createdOn = Date(),
                     icon = "",
-                    color = "",
+                    color = StandardColor.red(),
                     updatedOn = Date(),
                 )
             )

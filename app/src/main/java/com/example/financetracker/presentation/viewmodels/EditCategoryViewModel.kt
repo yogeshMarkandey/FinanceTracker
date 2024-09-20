@@ -16,9 +16,11 @@ import com.example.financetracker.domain.model.usecase.category.GetCategoryByIdU
 import com.example.financetracker.domain.model.usecase.category.UpdateCategoryUseCase
 import com.example.financetracker.domain.model.usecase.color.GetStandardColorsUseCase
 import com.example.financetracker.domain.model.usecase.icons.GetAvailableIconsUseCase
+import com.example.financetracker.presentation.common.IconHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Date
 import javax.inject.Inject
@@ -55,11 +57,9 @@ class EditCategoryViewModel @Inject constructor(
     val selectedColor = mutableStateOf(StandardColor.red())
     val selectedIcon = mutableStateOf(Icons.Default.Clear)
 
-    val _mapAvailableIcon = HashMap<String, Int>()
-
-    fun initViewModel(){
+    fun initViewModel() {
         getStandardColors()
-        getAvailableIconsList()
+        availableIcons.value = IconHelper.getAvailableIcons()
     }
 
     fun updateCategoryList(list: List<Category>) {
@@ -84,15 +84,14 @@ class EditCategoryViewModel @Inject constructor(
 
     fun addOrEditCategory() {
         val id = category.value?.id ?: System.currentTimeMillis().toInt()
-
         val category = Category(
             id = id,
             title = categoryTitle.value,
             type = category.value?.type ?: PaymentType.Expense,
-            notes = "",
+            notes = notesText.value,
             createdOn = if (isEditMode.value) category.value!!.createdOn else Date(),
-            icon = "",
-            color = "",
+            icon = selectedIcon.value.name,
+            color = selectedColor.value,
             updatedOn = Date(),
         )
 
@@ -116,6 +115,7 @@ class EditCategoryViewModel @Inject constructor(
         updateLoadingState(true)
         CoroutineScope(Dispatchers.IO).launch {
             try {
+                delay(500)
                 val result = getCategoryByIdUseCase.execute(id)
                 category.value = result
                 updateCategoryDetails(result)
@@ -139,35 +139,18 @@ class EditCategoryViewModel @Inject constructor(
         }
     }
 
-    fun getAvailableIconsList() {
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val icons = getAvailableIconsUseCase.execute()
-                availableIcons.value = icons
-                icons.forEachIndexed { index, icon ->
-                    _mapAvailableIcon[icon.name] = index
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "getAvailableIcons: ${e.message}", e)
-            }
-        }
-    }
 
     private fun updateCategoryDetails(category: Category) {
         categoryTitle.value = category.title
         notesText.value = category.notes
         paymentType.value = category.type
-        color.value = category.color
+        color.value = category.color.hex
         icon.value = category.icon
         selectedColor.value =
             availableColors.value.firstOrNull {
-                it.hex == category.color
+                it.hex == category.color.hex
             } ?: StandardColor.red()
 
-        selectedIcon.value =
-            availableIcons.value.firstOrNull {
-                it.name == category.icon
-            } ?: Icons.Default.Clear
-
+        selectedIcon.value = IconHelper.getIconByName(category.icon)
     }
 }

@@ -1,5 +1,6 @@
 package com.example.financetracker.domain.model.local
 
+import android.util.Log
 import androidx.compose.ui.graphics.Color
 import com.example.financetracker.presentation.utils.fromHex
 
@@ -13,7 +14,16 @@ data class StandardColor(
         }
 
         fun StandardColor.toColor(): Color {
-            return Color.fromHex(hex)
+            try {
+                if (hex.isEmpty()) {
+                    return Color.Red
+                }
+                val color = Color.fromHex(hex)
+                return color
+            } catch (e: Exception) {
+                Log.e("TAG", "toColor: Error Parsing Hex: $hex", e)
+                return Color.Yellow
+            }
         }
     }
 }

@@ -13,13 +13,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Button
-import androidx.compose.material.Card
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
@@ -62,6 +63,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.financetracker.data.models.local.PaymentType
 import com.example.financetracker.domain.model.local.Category
+import com.example.financetracker.domain.model.local.StandardColor.Companion.toColor
+import com.example.financetracker.presentation.common.IconHelper
 import com.example.financetracker.presentation.screens.navigation.Routes
 import com.example.financetracker.presentation.ui.theme.FinanceTrackerTheme
 import com.example.financetracker.presentation.viewmodels.AppViewModel
@@ -387,10 +390,8 @@ fun CategoryBottomSheetContent(
                 }
             }
             LazyVerticalGrid(
-                columns = GridCells.Fixed(4),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
+                columns = GridCells.Fixed(3),
+                modifier = Modifier.fillMaxWidth(),
                 contentPadding = PaddingValues(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -412,21 +413,38 @@ fun CategoryBottomSheetContent(
 
 @Composable
 fun CategoryGridItem(category: Category, isSelected: Boolean, onClick: () -> Unit) {
-    Card(
+    Box(
         modifier = Modifier
-            .fillMaxWidth()
             .clickable {
                 onClick()
             }
-            .aspectRatio(1f),
-        elevation = 4.dp,
-        backgroundColor = if (isSelected) Color.Yellow else Color.Cyan
+            .aspectRatio(1f)
+            .background(
+                color = if (isSelected) Color.Gray.copy(0.40f) else Color.Gray.copy(0.10f),
+                shape = CircleShape
+            )
+            .padding(12.dp),
+        contentAlignment = Alignment.Center
     ) {
         Box(
             contentAlignment = Alignment.Center,
-            modifier = Modifier.fillMaxSize()
         ) {
-            Text(text = category.title, style = MaterialTheme.typography.bodyMedium)
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    IconHelper.getIconByName(category.icon),
+                    contentDescription = "Category Icon",
+                    tint = category.color.toColor(),
+                    modifier = Modifier.size(36.dp)
+                )
+                Box(modifier = Modifier.height(6.dp))
+                Text(
+                    text = category.title,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = category.color.toColor(),
+                )
+            }
         }
     }
 }
@@ -435,6 +453,7 @@ fun CategoryGridItem(category: Category, isSelected: Boolean, onClick: () -> Uni
 @Composable
 private fun CategoryBottomSheetContentPreview() {
     val list = Category.getDefaults()
+    IconHelper.init()
     FinanceTrackerTheme {
         CategoryBottomSheetContent(
             allCategory = list,
