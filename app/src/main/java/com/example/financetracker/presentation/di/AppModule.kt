@@ -11,6 +11,10 @@ import com.example.financetracker.data.usecase.category.GetCategoryByIdUseCaseIm
 import com.example.financetracker.data.usecase.category.UpdateCategoryUseCaseImpl
 import com.example.financetracker.data.usecase.color.GetStandardColorsUseCaseImpl
 import com.example.financetracker.data.usecase.icons.GetAvailableIconsUseCaseImpl
+import com.example.financetracker.data.usecase.transaction.AddTransactionUseCaseImp
+import com.example.financetracker.data.usecase.transaction.GetAllTransactionBetweenUseCaseImp
+import com.example.financetracker.data.usecase.transaction.GetTransactionByIdUseCaseImp
+import com.example.financetracker.data.usecase.transaction.UpdateTransactionUseCaseImpl
 import com.example.financetracker.domain.model.repository.TransactionRepository
 import com.example.financetracker.domain.model.usecase.category.AddCategoryUseCase
 import com.example.financetracker.domain.model.usecase.category.GetAllCategoryUseCase
@@ -18,6 +22,10 @@ import com.example.financetracker.domain.model.usecase.category.GetCategoryByIdU
 import com.example.financetracker.domain.model.usecase.category.UpdateCategoryUseCase
 import com.example.financetracker.domain.model.usecase.color.GetStandardColorsUseCase
 import com.example.financetracker.domain.model.usecase.icons.GetAvailableIconsUseCase
+import com.example.financetracker.domain.model.usecase.transaction.AddTransactionUseCase
+import com.example.financetracker.domain.model.usecase.transaction.GetAllTransactionBetweenUseCase
+import com.example.financetracker.domain.model.usecase.transaction.GetTransactionByIdUseCase
+import com.example.financetracker.domain.model.usecase.transaction.UpdateTransactionUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -81,5 +89,25 @@ object AppModule {
     @Provides
     fun getGetAvailableIconsUseCase(@ApplicationContext context: Context): GetAvailableIconsUseCase {
         return GetAvailableIconsUseCaseImpl()
+    }
+
+    @Provides
+    fun getAllTransactionUC(repository: TransactionRepository): GetAllTransactionBetweenUseCase {
+        return GetAllTransactionBetweenUseCaseImp(repository)
+    }
+
+    @Provides
+    fun getUpdateTransactionUC(repository: TransactionRepository): UpdateTransactionUseCase {
+        return UpdateTransactionUseCaseImpl(repository)
+    }
+
+    @Provides
+    fun getAddTransactionUseCase(repository: TransactionRepository): AddTransactionUseCase {
+        return AddTransactionUseCaseImp(repository)
+    }
+
+    @Provides
+    fun getGetTransactionByIdUC(repository: TransactionRepository): GetTransactionByIdUseCase {
+        return GetTransactionByIdUseCaseImp(repository)
     }
 }

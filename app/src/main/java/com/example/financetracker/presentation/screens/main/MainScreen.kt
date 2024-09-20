@@ -41,7 +41,6 @@ fun MainScreen(
         composable(Routes.EditTransactionScreen) {
             EditTransactionScreen(
                 modifier = modifier,
-                appViewModel = viewModel,
                 navController = mainNavController,
             )
         }

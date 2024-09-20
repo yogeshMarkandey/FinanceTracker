@@ -2,6 +2,7 @@ package com.example.financetracker.presentation.screens.home
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FloatingActionButton
@@ -41,11 +43,11 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,6 +57,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -67,7 +70,7 @@ import com.example.financetracker.domain.model.local.StandardColor.Companion.toC
 import com.example.financetracker.presentation.common.IconHelper
 import com.example.financetracker.presentation.screens.navigation.Routes
 import com.example.financetracker.presentation.ui.theme.FinanceTrackerTheme
-import com.example.financetracker.presentation.viewmodels.AppViewModel
+import com.example.financetracker.presentation.viewmodels.EditTransactionViewModel
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
@@ -75,31 +78,38 @@ import java.util.Calendar
 @Composable
 fun EditTransactionScreen(
     modifier: Modifier,
-    appViewModel: AppViewModel = hiltViewModel(),
+    viewModel: EditTransactionViewModel = hiltViewModel(),
     navController: NavController,
 ) {
 
-    var selectedDate by remember { mutableStateOf("Select Date") }
-    var selectedTime by remember { mutableStateOf("Select Time") }
-    var amountText by remember { mutableStateOf("") }
-    var notesText by remember { mutableStateOf("") }
-    var selectedPaymentType by remember {
-        mutableStateOf(PaymentType.Expense)
+    val calendar by remember { viewModel.calendar }
+    val selectedDate =
+        "${calendar.get(Calendar.DAY_OF_MONTH)}/${calendar.get(Calendar.MONTH) + 1}/" +
+                "${calendar.get(Calendar.YEAR)}"
+
+    val selectedTime = calendar.get(Calendar.HOUR_OF_DAY).toString().padStart(2, '0') +
+            ":${calendar.get(Calendar.MINUTE).toString().padStart(2, '0')} " +
+            if (calendar.get(Calendar.AM_PM) == 0) "AM" else "PM"
+
+    val amountText by remember { viewModel.amountText }
+    val showAmountError by remember { viewModel.showAmountTextError }
+    val notesText by remember { viewModel.noteText }
+    val selectedPaymentType by remember {
+        viewModel.selectedPaymentType
     }
 
     val allCategories by remember {
-        appViewModel.allCategory
+        viewModel.allCategory
     }
 
     val selectedCategory by remember {
-        appViewModel.selectedCategory
+        viewModel.selectedCategory
     }
 
-    val calendar = Calendar.getInstance()
     val datePickerDialog = DatePickerDialog(
         LocalContext.current,
         { _, year, month, dayOfMonth ->
-            selectedDate = "$dayOfMonth/${month + 1}/$year"
+            viewModel.selectDate(dayOfMonth, month, year)
         },
         calendar.get(Calendar.YEAR),
         calendar.get(Calendar.MONTH),
@@ -110,8 +120,7 @@ fun EditTransactionScreen(
     val timePickerDialog = TimePickerDialog(
         LocalContext.current,
         { _, hourOfDay, minute ->
-            selectedTime =
-                "${hourOfDay.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}"
+            viewModel.selectTime(hourOfDay, minute)
         },
         calendar.get(Calendar.HOUR_OF_DAY),
         calendar.get(Calendar.MINUTE),
@@ -124,12 +133,16 @@ fun EditTransactionScreen(
 
     var categoryBottomSheetEditMode by remember { mutableStateOf(false) }
 
+    LaunchedEffect(key1 = Unit) {
+        viewModel.initViewModel()
+    }
+
     ModalBottomSheetLayout(
         sheetState = categorySheetState,
         sheetContent = {
             CategoryBottomSheetContent(
                 allCategory = allCategories,
-                selectedCategory = selectedCategory!!,
+                selectedCategory = selectedCategory,
                 onItemSelected = { category ->
                     if (categoryBottomSheetEditMode) {
                         val route = Routes.routeEditCategory(categoryId = category.id)
@@ -140,7 +153,7 @@ fun EditTransactionScreen(
                         return@CategoryBottomSheetContent
                     }
 
-                    appViewModel.updateSelectedCategory(category)
+                    viewModel.updateSelectedCategory(category)
                     coroutineScope.launch {
                         if (categorySheetState.isVisible) {
                             categorySheetState.hide()
@@ -180,16 +193,19 @@ fun EditTransactionScreen(
             amountText = amountText,
             notesText = notesText,
             onNotesUpdated = {
-                notesText = it
+                viewModel.updateNoteText(it)
             },
             onAmountUpdated = {
-                amountText = it
+                viewModel.updateAmountText(it)
             },
             selectedPaymentType = selectedPaymentType,
             onSelectPaymentType = {
-                selectedPaymentType = it
+                viewModel.updateSelectedPaymentType(it)
+            },
+            showAmountError = showAmountError,
+            onSaveTransactionClick = {
+                viewModel.saveTransaction()
             }
-
         )
     }
 }
@@ -203,13 +219,15 @@ private fun EditTransactionScreenContent(
     onClickTime: () -> Unit,
     selectedTime: String,
     onCategoryIconClick: () -> Unit,
-    selectedCategory: Category?,
+    selectedCategory: Category,
     amountText: String,
     notesText: String,
     onNotesUpdated: (String) -> Unit,
     onAmountUpdated: (String) -> Unit,
     selectedPaymentType: PaymentType,
-    onSelectPaymentType: (PaymentType) -> Unit
+    onSelectPaymentType: (PaymentType) -> Unit,
+    showAmountError: Boolean,
+    onSaveTransactionClick: () -> Unit,
 ) {
     Scaffold(
         modifier = modifier,
@@ -229,7 +247,9 @@ private fun EditTransactionScreenContent(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { }) {
+            FloatingActionButton(onClick = {
+                onSaveTransactionClick()
+            }) {
                 Icon(Icons.Default.Check, contentDescription = "Save Button")
             }
         }
@@ -273,14 +293,19 @@ private fun EditTransactionScreenContent(
                         .clickable {
                             onCategoryIconClick()
                         }
-                        .background(Color.LightGray)
+                        .background(Color.Gray.copy(alpha = 0.1f))
                         .padding(16.dp),
                     horizontalArrangement = Arrangement.Start
                 ) {
-                    Icon(Icons.Default.ShoppingCart, contentDescription = "Category Icon")
+                    Icon(
+                        IconHelper.getIconByName(selectedCategory.icon),
+                        contentDescription = "Category Icon",
+                        tint = selectedCategory.color.toColor()
+                    )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = selectedCategory?.title ?: "NA",
+                        text = selectedCategory.title,
+                        color = selectedCategory.color.toColor()
                     )
                 }
 
@@ -292,8 +317,19 @@ private fun EditTransactionScreenContent(
                     modifier = Modifier.fillMaxWidth(),
                     leadingIcon = {
                         Icon(Icons.Default.Call, contentDescription = "Icon Money")
-                    }
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
+
+                AnimatedVisibility(
+                    visible = showAmountError,
+                    modifier = Modifier.align(Alignment.End),
+                ) {
+                    Text(
+                        text = "Please enter valid Amount!",
+                        color = Color.Red,
+                    )
+                }
 
                 // OutlinedTextField
                 OutlinedTextField(
@@ -320,7 +356,12 @@ private fun EditTransactionScreenContent(
                             .clickable {
                                 onSelectPaymentType(v)
                             }
-                            .background(color = if (selectedPaymentType == v) Color.Yellow else Color.Cyan)
+                            .background(
+                                color =
+                                if (selectedPaymentType == v)
+                                    Color.Gray.copy(alpha = 0.40f)
+                                else Color.Gray.copy(alpha = 0.10f)
+                            )
                             .padding(horizontal = 16.dp, vertical = 12.dp)
 
                     ) {
@@ -486,6 +527,8 @@ private fun EditScreenPreview() {
             onAmountUpdated = {},
             selectedPaymentType = PaymentType.Expense,
             onSelectPaymentType = {},
+            showAmountError = true,
+            onSaveTransactionClick = {}
         )
     }
 }

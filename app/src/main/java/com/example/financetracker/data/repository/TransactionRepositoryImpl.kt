@@ -7,6 +7,8 @@ import com.example.financetracker.domain.model.local.Category
 import com.example.financetracker.domain.model.local.Category.Companion.toCategory
 import com.example.financetracker.domain.model.local.Category.Companion.toCategoryEntity
 import com.example.financetracker.domain.model.local.Transaction
+import com.example.financetracker.domain.model.local.Transaction.Companion.toTransaction
+import com.example.financetracker.domain.model.local.Transaction.Companion.toTransactionEntity
 import com.example.financetracker.domain.model.repository.TransactionRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -60,15 +62,23 @@ class TransactionRepositoryImpl @Inject constructor(
     }
 
     override fun getAllTransaction(): Flow<List<Transaction>> {
-        TODO("Not yet implemented")
+        return db.transactionDao().getAllTransaction().map { list ->
+            list.map {
+                it.toTransaction()
+            }
+        }
     }
 
     override fun updateTransaction(transaction: Transaction) {
-        TODO("Not yet implemented")
+        db.transactionDao().update(transaction.toTransactionEntity())
     }
 
     override fun addTransaction(transaction: Transaction) {
-        TODO("Not yet implemented")
+        db.transactionDao().insertAll(transaction.toTransactionEntity())
+    }
+
+    override fun getTransactionById(id: Int): Transaction? {
+        return db.transactionDao().getById(id)?.toTransaction()
     }
 
     override fun getAllCategories(): Flow<List<Category>> {

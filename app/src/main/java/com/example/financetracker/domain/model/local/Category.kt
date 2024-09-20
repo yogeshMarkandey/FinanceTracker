@@ -3,6 +3,7 @@ package com.example.financetracker.domain.model.local
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Settings
 import com.example.financetracker.data.models.local.CategoryEntity
 import com.example.financetracker.data.models.local.PaymentType
 import java.util.Date
@@ -54,6 +55,19 @@ data class Category(
             color = StandardColor.red(),
             updatedOn = Date(),
         )
+
+        fun other(): Category {
+            return Category(
+                id = 1,
+                title = "Other",
+                type = PaymentType.Expense,
+                notes = "Other",
+                createdOn = Date(),
+                icon = Icons.Default.Settings.name,
+                color = StandardColor.red(),
+                updatedOn = Date(),
+            )
+        }
 
         fun getDefaults(): List<Category> {
             return arrayListOf(
