@@ -10,12 +10,14 @@ import com.example.financetracker.data.usecase.category.GetAllCategoryUseCaseImp
 import com.example.financetracker.data.usecase.category.GetCategoryByIdUseCaseImpl
 import com.example.financetracker.data.usecase.category.UpdateCategoryUseCaseImpl
 import com.example.financetracker.data.usecase.color.GetStandardColorsUseCaseImpl
+import com.example.financetracker.data.usecase.icons.GetAvailableIconsUseCaseImpl
 import com.example.financetracker.domain.model.repository.TransactionRepository
 import com.example.financetracker.domain.model.usecase.category.AddCategoryUseCase
 import com.example.financetracker.domain.model.usecase.category.GetAllCategoryUseCase
 import com.example.financetracker.domain.model.usecase.category.GetCategoryByIdUseCase
 import com.example.financetracker.domain.model.usecase.category.UpdateCategoryUseCase
 import com.example.financetracker.domain.model.usecase.color.GetStandardColorsUseCase
+import com.example.financetracker.domain.model.usecase.icons.GetAvailableIconsUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -74,5 +76,10 @@ object AppModule {
     @Provides
     fun getGetStandardColorUseCase(@ApplicationContext context: Context): GetStandardColorsUseCase {
         return GetStandardColorsUseCaseImpl(context)
+    }
+
+    @Provides
+    fun getGetAvailableIconsUseCase(@ApplicationContext context: Context): GetAvailableIconsUseCase {
+        return GetAvailableIconsUseCaseImpl()
     }
 }

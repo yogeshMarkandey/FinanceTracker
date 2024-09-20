@@ -2,6 +2,8 @@ package com.example.financetracker.presentation.widgets
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,37 +13,40 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Icon
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.financetracker.domain.model.local.StandardColor
-import com.example.financetracker.domain.model.local.StandardColor.Companion.toColor
 import com.example.financetracker.presentation.ui.theme.FinanceTrackerTheme
 
 @Composable
-fun ColorsSelectionSheet(
+fun IconSelectionSheet(
     modifier: Modifier = Modifier,
-    availableColors: List<StandardColor>,
-    selectedColor: StandardColor,
-    onSelectColor: (StandardColor) -> Unit,
-
-    ) {
+    availableIcons: List<ImageVector>,
+    selectedIcon: ImageVector,
+    onSelectIcon: (ImageVector) -> Unit,
+    selectedColor: Color,
+) {
+    val scrollState = rememberScrollState()
     Surface {
         Column(
             modifier = modifier
                 .fillMaxWidth()
+                .scrollable(scrollState, Orientation.Vertical)
                 .padding(horizontal = 16.dp, vertical = 12.dp),
         ) {
-            Text(text = "Select Color :", modifier = Modifier.padding(vertical = 12.dp))
+            Text(text = "Select Icon :", modifier = Modifier.padding(vertical = 12.dp))
             LazyVerticalGrid(
                 columns = GridCells.Fixed(4),
                 modifier = Modifier
@@ -51,23 +56,29 @@ fun ColorsSelectionSheet(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(availableColors.size) { index ->
-                    val color = availableColors[index]
+                items(availableIcons.size) { index ->
+                    val vector = availableIcons[index]
                     Box(
                         modifier = Modifier
                             .aspectRatio(1f)
                             .clickable {
-                                onSelectColor(color)
+                                onSelectIcon(vector)
                             }
-                            .background(color = color.toColor(), shape = CircleShape),
+                            .background(
+                                color =
+                                if (vector.name == selectedIcon.name)
+                                    Color.Gray.copy(0.4f)
+                                else Color.Gray.copy(alpha = 0.1f),
+                                shape = CircleShape
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
-                        if (color.hex == selectedColor.hex)
-                            Icon(
-                                Icons.Default.Check,
-                                contentDescription = "Selected Color Icon",
-                                tint = Color.White,
-                            )
+
+                        Icon(
+                            vector,
+                            contentDescription = "Selected Color Icon",
+                            tint = selectedColor,
+                        )
                     }
                 }
             }
@@ -79,16 +90,11 @@ fun ColorsSelectionSheet(
 @Composable
 private fun Preview() {
     FinanceTrackerTheme(darkTheme = false) {
-        ColorsSelectionSheet(
-            availableColors = arrayListOf(
-                StandardColor("#0000FF", ""),
-                StandardColor("#FFEE23", ""),
-                StandardColor("#FF00FF", ""),
-                StandardColor("#FFE0FF", ""),
-                StandardColor("#FF9245", ""),
-            ),
-            onSelectColor = {},
-            selectedColor = StandardColor("#FF9245", ""),
+        IconSelectionSheet(
+            availableIcons = arrayListOf(Icons.Default.Edit, Icons.Default.Info),
+            selectedIcon = Icons.Default.Info,
+            onSelectIcon = {},
+            selectedColor = Color.Cyan
         )
     }
 }

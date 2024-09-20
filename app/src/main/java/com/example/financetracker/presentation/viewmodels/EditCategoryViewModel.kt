@@ -1,7 +1,10 @@
 package com.example.financetracker.presentation.viewmodels
 
 import android.util.Log
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.ViewModel
 import com.example.financetracker.data.models.local.PaymentType
 import com.example.financetracker.data.utils.CustomException
@@ -12,6 +15,7 @@ import com.example.financetracker.domain.model.usecase.category.GetAllCategoryUs
 import com.example.financetracker.domain.model.usecase.category.GetCategoryByIdUseCase
 import com.example.financetracker.domain.model.usecase.category.UpdateCategoryUseCase
 import com.example.financetracker.domain.model.usecase.color.GetStandardColorsUseCase
+import com.example.financetracker.domain.model.usecase.icons.GetAvailableIconsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -26,6 +30,7 @@ class EditCategoryViewModel @Inject constructor(
     private val getCategoryByIdUseCase: GetCategoryByIdUseCase,
     private val updateCategoryUseCase: UpdateCategoryUseCase,
     private val getStandardColorsUseCase: GetStandardColorsUseCase,
+    private val getAvailableIconsUseCase: GetAvailableIconsUseCase,
 ) : ViewModel() {
 
     private val TAG = this::class.java.name
@@ -46,10 +51,15 @@ class EditCategoryViewModel @Inject constructor(
     val icon = mutableStateOf("")
     val color = mutableStateOf("")
     val availableColors = mutableStateOf(emptyList<StandardColor>())
+    val availableIcons = mutableStateOf(emptyList<ImageVector>())
     val selectedColor = mutableStateOf(StandardColor.red())
+    val selectedIcon = mutableStateOf(Icons.Default.Clear)
 
-    init {
+    val _mapAvailableIcon = HashMap<String, Int>()
+
+    fun initViewModel(){
         getStandardColors()
+        getAvailableIconsList()
     }
 
     fun updateCategoryList(list: List<Category>) {
@@ -66,6 +76,10 @@ class EditCategoryViewModel @Inject constructor(
 
     fun updateSelectedColor(color: StandardColor) {
         selectedColor.value = color
+    }
+
+    fun updateSelectedIcon(icon: ImageVector) {
+        selectedIcon.value = icon
     }
 
     fun addOrEditCategory() {
@@ -125,6 +139,20 @@ class EditCategoryViewModel @Inject constructor(
         }
     }
 
+    fun getAvailableIconsList() {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val icons = getAvailableIconsUseCase.execute()
+                availableIcons.value = icons
+                icons.forEachIndexed { index, icon ->
+                    _mapAvailableIcon[icon.name] = index
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "getAvailableIcons: ${e.message}", e)
+            }
+        }
+    }
+
     private fun updateCategoryDetails(category: Category) {
         categoryTitle.value = category.title
         notesText.value = category.notes
@@ -135,6 +163,11 @@ class EditCategoryViewModel @Inject constructor(
             availableColors.value.firstOrNull {
                 it.hex == category.color
             } ?: StandardColor.red()
+
+        selectedIcon.value =
+            availableIcons.value.firstOrNull {
+                it.name == category.icon
+            } ?: Icons.Default.Clear
 
     }
 }

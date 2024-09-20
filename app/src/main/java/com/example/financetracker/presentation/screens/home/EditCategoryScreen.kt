@@ -39,16 +39,18 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.financetracker.domain.model.local.StandardColor
+import com.example.financetracker.domain.model.local.StandardColor.Companion.toColor
 import com.example.financetracker.presentation.ui.theme.FinanceTrackerTheme
-import com.example.financetracker.presentation.utils.fromHex
 import com.example.financetracker.presentation.viewmodels.EditCategoryViewModel
 import com.example.financetracker.presentation.widgets.ColorsSelectionSheet
+import com.example.financetracker.presentation.widgets.IconSelectionSheet
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -67,11 +69,17 @@ fun EditCategoryScreen(
     val selectedColor by remember { viewModel.selectedColor }
     val availableColor by remember { viewModel.availableColors }
 
+    val availableIcons by remember { viewModel.availableIcons }
+    val selectedIcon by remember { viewModel.selectedIcon }
+
     val coroutineScope = rememberCoroutineScope()
     val colorBottomSheetState =
         rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
+    val iconBottomSheetState =
+        rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
 
     LaunchedEffect(key1 = categoryId) {
+        viewModel.initViewModel()
         if (categoryId != null && categoryId > 0) {
             viewModel.getCategoryById(categoryId)
         }
@@ -96,43 +104,65 @@ fun EditCategoryScreen(
     }
 
     ModalBottomSheetLayout(
-        sheetState = colorBottomSheetState,
+        sheetState = iconBottomSheetState,
         sheetContent = {
-            ColorsSelectionSheet(
-                modifier = Modifier,
-                availableColors = availableColor,
-                selectedColor = selectedColor,
-                onSelectColor = {
-                    viewModel.updateSelectedColor(it)
+            IconSelectionSheet(
+                availableIcons = availableIcons,
+                selectedIcon = selectedIcon,
+                onSelectIcon = {
                     coroutineScope.launch {
-                        colorBottomSheetState.hide()
+                        viewModel.updateSelectedIcon(it)
+                        iconBottomSheetState.hide()
                     }
                 },
+                selectedColor = selectedColor.toColor()
             )
-        },
-    ) {
-        EditCategoryScreenContent(
-            modifier = modifier, navController = navController,
-            onSaveCategory = {
-                viewModel.addOrEditCategory()
-                navController.popBackStack()
+        }) {
+        ModalBottomSheetLayout(
+            sheetState = colorBottomSheetState,
+            sheetContent = {
+                ColorsSelectionSheet(
+                    modifier = Modifier,
+                    availableColors = availableColor,
+                    selectedColor = selectedColor,
+                    onSelectColor = {
+                        viewModel.updateSelectedColor(it)
+                        coroutineScope.launch {
+                            colorBottomSheetState.hide()
+                        }
+                    },
+                )
             },
-            onTitleUpdate = { value ->
-                viewModel.updateCategoryTitle(value)
-            },
-            categoryTitle = categoryTitle,
-            isEditMode = isEditMode,
-            notesText = notesText,
-            onNotesUpdated = {
-                viewModel.updateNotesText(it)
-            },
-            onEditColor = {
-                coroutineScope.launch {
-                    colorBottomSheetState.show()
+        ) {
+            EditCategoryScreenContent(
+                modifier = modifier, navController = navController,
+                onSaveCategory = {
+                    viewModel.addOrEditCategory()
+                    navController.popBackStack()
+                },
+                onTitleUpdate = { value ->
+                    viewModel.updateCategoryTitle(value)
+                },
+                categoryTitle = categoryTitle,
+                isEditMode = isEditMode,
+                notesText = notesText,
+                onNotesUpdated = {
+                    viewModel.updateNotesText(it)
+                },
+                onEditColor = {
+                    coroutineScope.launch {
+                        colorBottomSheetState.show()
+                    }
+                },
+                selectedColor = selectedColor,
+                selectedIcon = selectedIcon,
+                onIconSelectClick = {
+                    coroutineScope.launch {
+                        iconBottomSheetState.show()
+                    }
                 }
-            },
-            selectedColor = selectedColor
-        )
+            )
+        }
     }
 }
 
@@ -148,6 +178,8 @@ private fun EditCategoryScreenContent(
     onNotesUpdated: (String) -> Unit,
     onEditColor: () -> Unit,
     selectedColor: StandardColor,
+    selectedIcon: ImageVector,
+    onIconSelectClick: () -> Unit
 ) {
     Scaffold(
         modifier = modifier,
@@ -202,17 +234,37 @@ private fun EditCategoryScreenContent(
                 }
             )
 
-            Box(
-                modifier = Modifier
-                    .padding(horizontal = 12.dp, vertical = 12.dp)
-                    .align(Alignment.Start)
-                    .width(48.dp)
-                    .clickable {
-                        onEditColor()
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 12.dp, vertical = 12.dp)
+                        .width(48.dp)
+                        .clickable {
+                            onEditColor()
+                        }
+                        .aspectRatio(1f)
+                        .background(color = selectedColor.toColor(), shape = CircleShape),
+                )
+
+                Box(
+                    modifier = Modifier.background(
+                        color = Color.Gray.copy(alpha = .35f),
+                        CircleShape
+                    )
+                ) {
+                    IconButton(
+                        onClick = { onIconSelectClick() }) {
+                        Icon(
+                            selectedIcon,
+                            contentDescription = "Selected Icon",
+                            tint = selectedColor.toColor(),
+                        )
                     }
-                    .aspectRatio(1f)
-                    .background(color = Color.fromHex(selectedColor.hex), shape = CircleShape),
-            )
+                }
+            }
 
             Button(
                 modifier = Modifier,
@@ -244,7 +296,9 @@ private fun Preview() {
             notesText = "Notes",
             onNotesUpdated = {},
             onEditColor = {},
-            selectedColor = StandardColor.red()
+            selectedColor = StandardColor.red(),
+            selectedIcon = Icons.Default.Edit,
+            onIconSelectClick = {}
         )
     }
 }
