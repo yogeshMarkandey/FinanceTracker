@@ -157,123 +157,171 @@ fun EditTransactionScreen(
             )
         },
     ) {
-        Scaffold(
+        EditTransactionScreenContent(
             modifier = modifier,
-            backgroundColor = MaterialTheme.colorScheme.background,
-            contentColor = MaterialTheme.colorScheme.primary,
-            topBar = {
-                TopAppBar(
-                    title = {
-                        Row {
-                            IconButton(onClick = { navController.popBackStack() }) {
-                                Icon(Icons.Default.ArrowBack, contentDescription = "Back button")
-                            }
-                        }
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(text = "Edit Transaction")
-                    },
-                )
+            navController = navController,
+            onClickDate = {
+                datePickerDialog.show()
             },
-            floatingActionButton = {
-                FloatingActionButton(onClick = { }) {
-                    Icon(Icons.Default.Check, contentDescription = "Save Button")
+            selectedDate = selectedDate,
+            onClickTime = {
+                timePickerDialog.show()
+            },
+            selectedTime = selectedTime,
+            onCategoryIconClick = {
+                coroutineScope.launch {
+                    categorySheetState.show()
+                }
+            },
+            selectedCategory = selectedCategory,
+            amountText = amountText,
+            notesText = notesText,
+            onNotesUpdated = {
+                notesText = it
+            },
+            onAmountUpdated = {
+                amountText = it
+            },
+            selectedPaymentType = selectedPaymentType,
+            onSelectPaymentType = {
+                selectedPaymentType = it
+            }
+
+        )
+    }
+}
+
+@Composable
+private fun EditTransactionScreenContent(
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    onClickDate: () -> Unit,
+    selectedDate: String,
+    onClickTime: () -> Unit,
+    selectedTime: String,
+    onCategoryIconClick: () -> Unit,
+    selectedCategory: Category?,
+    amountText: String,
+    notesText: String,
+    onNotesUpdated: (String) -> Unit,
+    onAmountUpdated: (String) -> Unit,
+    selectedPaymentType: PaymentType,
+    onSelectPaymentType: (PaymentType) -> Unit
+) {
+    Scaffold(
+        modifier = modifier,
+        backgroundColor = MaterialTheme.colorScheme.background,
+        contentColor = MaterialTheme.colorScheme.primary,
+        topBar = {
+            TopAppBar(
+                title = {
+                    Row {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(Icons.Default.ArrowBack, contentDescription = "Back button")
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(text = "Edit Transaction")
+                },
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = { }) {
+                Icon(Icons.Default.Check, contentDescription = "Save Button")
+            }
+        }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.Top,
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(it)
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top,
+            ) {
+                Button(onClick = { onClickDate() }) {
+                    Icon(Icons.Default.DateRange, contentDescription = "Select Date")
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text(text = selectedDate)
+                }
+                Button(onClick = { onClickTime() }) {
+                    Icon(Icons.Outlined.DateRange, contentDescription = "Select Time")
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text(text = selectedTime)
                 }
             }
-        ) {
+
             Column(
                 modifier = Modifier
-                    .fillMaxSize(),
-                verticalArrangement = Arrangement.Top,
+                    .fillMaxWidth()
+                    .padding(it)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(it)
+                        .clickable {
+                            onCategoryIconClick()
+                        }
+                        .background(Color.LightGray)
                         .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Top,
+                    horizontalArrangement = Arrangement.Start
                 ) {
-                    Button(onClick = { datePickerDialog.show() }) {
-                        Icon(Icons.Default.DateRange, contentDescription = "Select Date")
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Text(text = selectedDate)
-                    }
-                    Button(onClick = { timePickerDialog.show() }) {
-                        Icon(Icons.Outlined.DateRange, contentDescription = "Select Time")
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Text(text = selectedTime)
-                    }
+                    Icon(Icons.Default.ShoppingCart, contentDescription = "Category Icon")
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = selectedCategory?.title ?: "NA",
+                    )
                 }
 
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(it)
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
+                TextField(
+                    value = amountText,
+                    onValueChange = { onAmountUpdated(it) },
+                    label = { Text("Enter Amount") },
+                    placeholder = { Text("Type something...") },
+                    modifier = Modifier.fillMaxWidth(),
+                    leadingIcon = {
+                        Icon(Icons.Default.Call, contentDescription = "Icon Money")
+                    }
+                )
 
-                    Row(
+                // OutlinedTextField
+                OutlinedTextField(
+                    value = notesText,
+                    onValueChange = { onNotesUpdated(it) },
+                    label = { Text("Write Notes") },
+                    placeholder = { Text("Type here...") },
+                    modifier = Modifier.fillMaxWidth(),
+                    leadingIcon = {
+                        Icon(Icons.Default.Notifications, contentDescription = "Icon Money")
+                    }
+                )
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                for (v in PaymentType.entries) {
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth()
                             .clickable {
-                                coroutineScope.launch {
-                                    categorySheetState.show()
-                                }
+                                onSelectPaymentType(v)
                             }
-                            .background(Color.LightGray)
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.Start
+                            .background(color = if (selectedPaymentType == v) Color.Yellow else Color.Cyan)
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
+
                     ) {
-                        Icon(Icons.Default.ShoppingCart, contentDescription = "Category Icon")
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = selectedCategory?.title ?: "NA",
-                        )
-                    }
-
-                    TextField(
-                        value = amountText,
-                        onValueChange = { amountText = it },
-                        label = { Text("Enter Amount") },
-                        placeholder = { Text("Type something...") },
-                        modifier = Modifier.fillMaxWidth(),
-                        leadingIcon = {
-                            Icon(Icons.Default.Call, contentDescription = "Icon Money")
-                        }
-                    )
-
-                    // OutlinedTextField
-                    OutlinedTextField(
-                        value = notesText,
-                        onValueChange = { notesText = it },
-                        label = { Text("Write Notes") },
-                        placeholder = { Text("Type here...") },
-                        modifier = Modifier.fillMaxWidth(),
-                        leadingIcon = {
-                            Icon(Icons.Default.Notifications, contentDescription = "Icon Money")
-                        }
-                    )
-                }
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    for (v in PaymentType.entries) {
-                        Box(
-                            modifier = Modifier
-                                .clickable {
-                                    selectedPaymentType = v
-                                }
-                                .background(color = if (selectedPaymentType == v) Color.Yellow else Color.Cyan)
-                                .padding(horizontal = 16.dp, vertical = 12.dp)
-
-                        ) {
-                            Text(text = v.name, textAlign = TextAlign.Center)
-                        }
+                        Text(text = v.name, textAlign = TextAlign.Center)
                     }
                 }
             }
@@ -404,9 +452,21 @@ private fun CategoryBottomSheetContentPreview() {
 private fun EditScreenPreview() {
     val navController = rememberNavController()
     FinanceTrackerTheme(darkTheme = false, dynamicColor = true) {
-        EditTransactionScreen(
+        EditTransactionScreenContent(
             modifier = Modifier,
             navController = navController,
+            onClickDate = {},
+            selectedDate = "12 Jan",
+            onClickTime = {},
+            selectedTime = "12:35 AM",
+            onCategoryIconClick = {},
+            selectedCategory = Category.getDefaults()[2],
+            amountText = "400",
+            notesText = "Notes",
+            onNotesUpdated = {},
+            onAmountUpdated = {},
+            selectedPaymentType = PaymentType.Expense,
+            onSelectPaymentType = {},
         )
     }
 }
