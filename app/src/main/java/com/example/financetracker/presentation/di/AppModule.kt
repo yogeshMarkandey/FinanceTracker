@@ -2,9 +2,14 @@ package com.example.financetracker.presentation.di
 
 import android.content.Context
 import com.example.financetracker.data.dataprovider.local.TransactionDatabase
+import com.example.financetracker.data.models.local.dao.BudgetDAO
 import com.example.financetracker.data.models.local.dao.CategoryDAO
+import com.example.financetracker.data.models.local.dao.CategoryWiseBudgetDAO
 import com.example.financetracker.data.models.local.dao.TransactionsDAO
+import com.example.financetracker.data.repository.BudgetRepositoryImpl
 import com.example.financetracker.data.repository.TransactionRepositoryImpl
+import com.example.financetracker.data.usecase.budget.GetBudgetByStartDateUseCaseImpl
+import com.example.financetracker.data.usecase.budget.SaveBudgetUseCaseImpl
 import com.example.financetracker.data.usecase.category.AddCategoryUseCaseImpl
 import com.example.financetracker.data.usecase.category.GetAllCategoryUseCaseImpl
 import com.example.financetracker.data.usecase.category.GetCategoryByIdUseCaseImpl
@@ -15,17 +20,20 @@ import com.example.financetracker.data.usecase.transaction.AddTransactionUseCase
 import com.example.financetracker.data.usecase.transaction.GetAllTransactionBetweenUseCaseImp
 import com.example.financetracker.data.usecase.transaction.GetTransactionByIdUseCaseImp
 import com.example.financetracker.data.usecase.transaction.UpdateTransactionUseCaseImpl
-import com.example.financetracker.domain.model.repository.TransactionRepository
-import com.example.financetracker.domain.model.usecase.category.AddCategoryUseCase
-import com.example.financetracker.domain.model.usecase.category.GetAllCategoryUseCase
-import com.example.financetracker.domain.model.usecase.category.GetCategoryByIdUseCase
-import com.example.financetracker.domain.model.usecase.category.UpdateCategoryUseCase
-import com.example.financetracker.domain.model.usecase.color.GetStandardColorsUseCase
-import com.example.financetracker.domain.model.usecase.icons.GetAvailableIconsUseCase
-import com.example.financetracker.domain.model.usecase.transaction.AddTransactionUseCase
-import com.example.financetracker.domain.model.usecase.transaction.GetAllTransactionBetweenUseCase
-import com.example.financetracker.domain.model.usecase.transaction.GetTransactionByIdUseCase
-import com.example.financetracker.domain.model.usecase.transaction.UpdateTransactionUseCase
+import com.example.financetracker.domain.repository.BudgetRepository
+import com.example.financetracker.domain.repository.TransactionRepository
+import com.example.financetracker.domain.usecase.budget.GetBudgetByStartDateUseCase
+import com.example.financetracker.domain.usecase.budget.SaveBudgetUseCase
+import com.example.financetracker.domain.usecase.category.AddCategoryUseCase
+import com.example.financetracker.domain.usecase.category.GetAllCategoryUseCase
+import com.example.financetracker.domain.usecase.category.GetCategoryByIdUseCase
+import com.example.financetracker.domain.usecase.category.UpdateCategoryUseCase
+import com.example.financetracker.domain.usecase.color.GetStandardColorsUseCase
+import com.example.financetracker.domain.usecase.icons.GetAvailableIconsUseCase
+import com.example.financetracker.domain.usecase.transaction.AddTransactionUseCase
+import com.example.financetracker.domain.usecase.transaction.GetAllTransactionBetweenUseCase
+import com.example.financetracker.domain.usecase.transaction.GetTransactionByIdUseCase
+import com.example.financetracker.domain.usecase.transaction.UpdateTransactionUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -53,6 +61,27 @@ object AppModule {
     @Provides
     fun getCategoryDao(db: TransactionDatabase): CategoryDAO {
         return db.categoryDao()
+    }
+
+    @Singleton
+    @Provides
+    fun getBudgetDao(db: TransactionDatabase): BudgetDAO {
+        return db.budgetDao()
+    }
+
+    @Singleton
+    @Provides
+    fun getCategoryBudgetDao(db: TransactionDatabase): CategoryWiseBudgetDAO {
+        return db.categoryBudgetDao()
+    }
+
+    @Singleton
+    @Provides
+    fun getBudgetRepository(
+        budgetDAO: BudgetDAO,
+        categoryBudgetDAO: CategoryWiseBudgetDAO
+    ): BudgetRepository {
+        return BudgetRepositoryImpl(budgetDAO, categoryBudgetDAO)
     }
 
     @Singleton
@@ -109,5 +138,15 @@ object AppModule {
     @Provides
     fun getGetTransactionByIdUC(repository: TransactionRepository): GetTransactionByIdUseCase {
         return GetTransactionByIdUseCaseImp(repository)
+    }
+
+    @Provides
+    fun getSaveBudgetUC(repository: BudgetRepository): SaveBudgetUseCase {
+        return SaveBudgetUseCaseImpl(repository)
+    }
+
+    @Provides
+    fun getGetBudgetByStartDateUC(repository: BudgetRepository): GetBudgetByStartDateUseCase {
+        return GetBudgetByStartDateUseCaseImpl(repository)
     }
 }

@@ -1,8 +1,8 @@
 package com.example.financetracker.data.usecase.transaction
 
 import com.example.financetracker.domain.model.local.Transaction
-import com.example.financetracker.domain.model.repository.TransactionRepository
-import com.example.financetracker.domain.model.usecase.transaction.GetAllTransactionBetweenUseCase
+import com.example.financetracker.domain.repository.TransactionRepository
+import com.example.financetracker.domain.usecase.transaction.GetAllTransactionBetweenUseCase
 import kotlinx.coroutines.flow.Flow
 import java.util.Date
 import javax.inject.Inject

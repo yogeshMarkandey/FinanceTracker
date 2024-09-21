@@ -1,7 +1,7 @@
-package com.example.financetracker.domain.model.usecase.transaction
+package com.example.financetracker.domain.usecase.transaction
 
 import com.example.financetracker.domain.model.local.Transaction
 
-interface AddTransactionUseCase {
+interface UpdateTransactionUseCase {
     fun execute(transaction: Transaction)
 }

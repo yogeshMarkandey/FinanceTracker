@@ -5,8 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.example.financetracker.data.models.local.TransactionModel
 import com.example.financetracker.domain.model.local.Category
-import com.example.financetracker.domain.model.usecase.category.AddCategoryUseCase
-import com.example.financetracker.domain.model.usecase.category.GetAllCategoryUseCase
+import com.example.financetracker.domain.usecase.category.AddCategoryUseCase
+import com.example.financetracker.domain.usecase.category.GetAllCategoryUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

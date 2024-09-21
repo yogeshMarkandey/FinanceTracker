@@ -7,8 +7,8 @@ import androidx.lifecycle.ViewModel
 import com.example.financetracker.data.models.local.PaymentType
 import com.example.financetracker.domain.model.local.Category
 import com.example.financetracker.domain.model.local.Transaction
-import com.example.financetracker.domain.model.usecase.category.GetCategoryByIdUseCase
-import com.example.financetracker.domain.model.usecase.transaction.GetAllTransactionBetweenUseCase
+import com.example.financetracker.domain.usecase.category.GetCategoryByIdUseCase
+import com.example.financetracker.domain.usecase.transaction.GetAllTransactionBetweenUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

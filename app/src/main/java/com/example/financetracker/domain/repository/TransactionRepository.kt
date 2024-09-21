@@ -1,4 +1,4 @@
-package com.example.financetracker.domain.model.repository
+package com.example.financetracker.domain.repository
 
 import com.example.financetracker.data.models.local.TransactionModel
 import com.example.financetracker.domain.model.local.Category

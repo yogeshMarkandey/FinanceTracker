@@ -1,0 +1,11 @@
+package com.example.financetracker.domain.repository
+
+import com.example.financetracker.domain.model.local.Budget
+import kotlinx.coroutines.flow.Flow
+import java.util.Date
+
+interface BudgetRepository {
+    suspend fun getBudgetsStartBetween(start: Date, end: Date): Flow<List<Budget>>
+    fun saveBudget(budget: Budget)
+    fun updateBudget(budget: Budget)
+}

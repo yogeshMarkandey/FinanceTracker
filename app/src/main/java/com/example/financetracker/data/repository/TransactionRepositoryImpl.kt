@@ -9,7 +9,7 @@ import com.example.financetracker.domain.model.local.Category.Companion.toCatego
 import com.example.financetracker.domain.model.local.Transaction
 import com.example.financetracker.domain.model.local.Transaction.Companion.toTransaction
 import com.example.financetracker.domain.model.local.Transaction.Companion.toTransactionEntity
-import com.example.financetracker.domain.model.repository.TransactionRepository
+import com.example.financetracker.domain.repository.TransactionRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow

@@ -10,7 +10,8 @@ data class Budget(
     val title: String,
     val budgetAmount: Float,
     val totalConsumed: Float,
-    val categoryWiseBudgetIds: ArrayList<String>
+    val categoryWiseBudgetIds: ArrayList<String>,
+    var categoryBudgets: MutableList<CategoryBudget> = mutableListOf()
 ) {
     companion object {
         fun BudgetEntity.toBudget(): Budget {

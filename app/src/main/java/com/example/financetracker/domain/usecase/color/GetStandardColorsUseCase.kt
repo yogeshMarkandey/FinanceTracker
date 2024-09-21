@@ -1,4 +1,4 @@
-package com.example.financetracker.domain.model.usecase.color
+package com.example.financetracker.domain.usecase.color
 
 import com.example.financetracker.domain.model.local.StandardColor
 

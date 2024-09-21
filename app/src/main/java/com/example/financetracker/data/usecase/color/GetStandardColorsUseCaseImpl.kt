@@ -2,7 +2,7 @@ package com.example.financetracker.data.usecase.color
 
 import android.content.Context
 import com.example.financetracker.domain.model.local.StandardColor
-import com.example.financetracker.domain.model.usecase.color.GetStandardColorsUseCase
+import com.example.financetracker.domain.usecase.color.GetStandardColorsUseCase
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import javax.inject.Inject

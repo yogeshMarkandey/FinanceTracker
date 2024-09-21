@@ -1,4 +1,4 @@
-package com.example.financetracker.domain.model.usecase.category
+package com.example.financetracker.domain.usecase.category
 
 import com.example.financetracker.domain.model.local.Category
 

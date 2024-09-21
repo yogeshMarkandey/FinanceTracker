@@ -11,7 +11,9 @@ import com.example.financetracker.data.models.local.CategoryEntity
 import com.example.financetracker.data.models.local.CategoryWiseBudgetEntity
 import com.example.financetracker.data.models.local.PaymentSourceEntity
 import com.example.financetracker.data.models.local.TagEntity
+import com.example.financetracker.data.models.local.dao.BudgetDAO
 import com.example.financetracker.data.models.local.dao.CategoryDAO
+import com.example.financetracker.data.models.local.dao.CategoryWiseBudgetDAO
 import com.example.financetracker.data.models.local.dao.TransactionsDAO
 
 @Database(
@@ -32,6 +34,10 @@ abstract class TransactionDatabase : RoomDatabase() {
 
     abstract fun categoryDao(): CategoryDAO
 
+    abstract fun budgetDao(): BudgetDAO
+
+    abstract fun categoryBudgetDao(): CategoryWiseBudgetDAO
+
     companion object {
         @Volatile
         private var INSTANCE: TransactionDatabase? = null
@@ -41,7 +47,7 @@ abstract class TransactionDatabase : RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     TransactionDatabase::class.java,
-                    name= "transactions-db",
+                    name = "transactions-db",
                 )
                     .fallbackToDestructiveMigration()
                     .build()

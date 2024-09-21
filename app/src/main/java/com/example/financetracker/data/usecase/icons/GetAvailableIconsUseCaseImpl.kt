@@ -25,7 +25,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.example.financetracker.domain.model.usecase.icons.GetAvailableIconsUseCase
+import com.example.financetracker.domain.usecase.icons.GetAvailableIconsUseCase
 import javax.inject.Inject
 
 class GetAvailableIconsUseCaseImpl @Inject constructor() : GetAvailableIconsUseCase {

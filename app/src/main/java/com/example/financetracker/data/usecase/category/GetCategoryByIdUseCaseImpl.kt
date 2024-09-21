@@ -1,8 +1,8 @@
 package com.example.financetracker.data.usecase.category
 
 import com.example.financetracker.domain.model.local.Category
-import com.example.financetracker.domain.model.repository.TransactionRepository
-import com.example.financetracker.domain.model.usecase.category.GetCategoryByIdUseCase
+import com.example.financetracker.domain.repository.TransactionRepository
+import com.example.financetracker.domain.usecase.category.GetCategoryByIdUseCase
 import javax.inject.Inject
 
 class GetCategoryByIdUseCaseImpl @Inject constructor(
