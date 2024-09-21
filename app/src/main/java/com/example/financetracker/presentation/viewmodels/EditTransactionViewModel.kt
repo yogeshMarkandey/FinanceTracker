@@ -139,10 +139,6 @@ class EditTransactionViewModel @Inject constructor(
         CoroutineScope(Dispatchers.IO).launch {
             allCategoryUseCase.execute().collect { list ->
                 updateCategoryList(list.ifEmpty { Category.getDefaults() })
-                if (selectedCategory.value == null) {
-                    updateSelectedCategory(_allCategories.value[0])
-                }
-                Log.d(TAG, "Called: list length: ${list.size}")
             }
         }
     }

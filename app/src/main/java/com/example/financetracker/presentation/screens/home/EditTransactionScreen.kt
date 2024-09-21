@@ -84,7 +84,6 @@ fun EditTransactionScreen(
     transactionId: Int? = null
 ) {
     val context = LocalContext.current
-    var loading by remember { mutableStateOf(false) }
     val errorMessage by remember { viewModel.errorMessage }
     val screenStates by remember { viewModel.screenStates }
     val isEditMode by remember { viewModel.isEditMode }
@@ -141,13 +140,12 @@ fun EditTransactionScreen(
     var categoryBottomSheetEditMode by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = Unit) {
-        if (transactionId != null) {
+        if (transactionId != null && transactionId > 0) {
             viewModel.loadTransactionById(transactionId)
         }
     }
 
     LaunchedEffect(key1 = screenStates) {
-        loading = screenStates == EditTransactionScreenStates.LOADING
         when (screenStates) {
             EditTransactionScreenStates.UPDATE_SUCCESS -> {
                 navController.popBackStack()
@@ -168,7 +166,7 @@ fun EditTransactionScreen(
         viewModel.initViewModel()
     }
 
-    if (loading) {
+    if (screenStates == EditTransactionScreenStates.LOADING) {
         Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
