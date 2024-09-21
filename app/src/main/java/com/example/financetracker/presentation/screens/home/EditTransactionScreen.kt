@@ -2,6 +2,7 @@ package com.example.financetracker.presentation.screens.home
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -11,18 +12,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
@@ -68,9 +67,11 @@ import com.example.financetracker.data.models.local.PaymentType
 import com.example.financetracker.domain.model.local.Category
 import com.example.financetracker.domain.model.local.StandardColor.Companion.toColor
 import com.example.financetracker.presentation.common.IconHelper
+import com.example.financetracker.presentation.screens.home.states.EditTransactionScreenStates
 import com.example.financetracker.presentation.screens.navigation.Routes
 import com.example.financetracker.presentation.ui.theme.FinanceTrackerTheme
 import com.example.financetracker.presentation.viewmodels.EditTransactionViewModel
+import com.example.financetracker.presentation.widgets.CategoryIconCompose
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
@@ -81,7 +82,10 @@ fun EditTransactionScreen(
     viewModel: EditTransactionViewModel = hiltViewModel(),
     navController: NavController,
 ) {
-
+    val context = LocalContext.current
+    var loading by remember { mutableStateOf(false) }
+    val errorMessage by remember { viewModel.errorMessage }
+    val screenStates by remember { viewModel.screenStates }
     val calendar by remember { viewModel.calendar }
     val selectedDate =
         "${calendar.get(Calendar.DAY_OF_MONTH)}/${calendar.get(Calendar.MONTH) + 1}/" +
@@ -94,6 +98,7 @@ fun EditTransactionScreen(
     val amountText by remember { viewModel.amountText }
     val showAmountError by remember { viewModel.showAmountTextError }
     val notesText by remember { viewModel.noteText }
+
     val selectedPaymentType by remember {
         viewModel.selectedPaymentType
     }
@@ -133,8 +138,32 @@ fun EditTransactionScreen(
 
     var categoryBottomSheetEditMode by remember { mutableStateOf(false) }
 
+    LaunchedEffect(key1 = screenStates) {
+        loading = screenStates == EditTransactionScreenStates.LOADING
+        when (screenStates) {
+            EditTransactionScreenStates.UPDATE_SUCCESSFUL -> {
+                navController.popBackStack()
+            }
+
+            EditTransactionScreenStates.UPDATE_ERROR -> {
+                Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+            }
+
+            else -> {
+                /* no-op */
+            }
+        }
+    }
+
     LaunchedEffect(key1 = Unit) {
         viewModel.initViewModel()
+    }
+
+    if (loading) {
+        Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        return
     }
 
     ModalBottomSheetLayout(
@@ -439,7 +468,7 @@ fun CategoryBottomSheetContent(
             ) {
                 items(allCategory.size) { index ->
                     val item = allCategory[index]
-                    CategoryGridItem(
+                    CategoryIconCompose(
                         category = item,
                         isSelected = item.id == selectedCategory.id,
                         onClick = {
@@ -447,44 +476,6 @@ fun CategoryBottomSheetContent(
                         }
                     )
                 }
-            }
-        }
-    }
-}
-
-@Composable
-fun CategoryGridItem(category: Category, isSelected: Boolean, onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .clickable {
-                onClick()
-            }
-            .aspectRatio(1f)
-            .background(
-                color = if (isSelected) Color.Gray.copy(0.40f) else Color.Gray.copy(0.10f),
-                shape = CircleShape
-            )
-            .padding(12.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Box(
-            contentAlignment = Alignment.Center,
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Icon(
-                    IconHelper.getIconByName(category.icon),
-                    contentDescription = "Category Icon",
-                    tint = category.color.toColor(),
-                    modifier = Modifier.size(36.dp)
-                )
-                Box(modifier = Modifier.height(6.dp))
-                Text(
-                    text = category.title,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = category.color.toColor(),
-                )
             }
         }
     }

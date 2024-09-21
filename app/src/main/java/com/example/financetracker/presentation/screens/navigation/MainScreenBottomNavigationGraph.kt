@@ -22,7 +22,7 @@ fun MainScreenBottomNavigationGraph(
         startDestination = BottomNavScreen.Home.route,
         modifier = modifier
     ) {
-        composable(BottomNavScreen.Home.route) { HomeScreen(modifier, viewModel) }
+        composable(BottomNavScreen.Home.route) { HomeScreen(modifier) }
         composable(BottomNavScreen.Search.route) { AnalysisScreen() }
         composable(BottomNavScreen.Profile.route) { ProfileScreen() }
     }

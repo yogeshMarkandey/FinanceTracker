@@ -10,8 +10,11 @@ import com.example.financetracker.domain.model.local.Transaction
 import com.example.financetracker.domain.model.local.Transaction.Companion.toTransaction
 import com.example.financetracker.domain.model.local.Transaction.Companion.toTransactionEntity
 import com.example.financetracker.domain.model.repository.TransactionRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import org.apache.poi.openxml4j.opc.OPCPackage
 import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
@@ -22,6 +25,18 @@ import javax.inject.Inject
 class TransactionRepositoryImpl @Inject constructor(
     private val db: TransactionDatabase
 ) : TransactionRepository {
+
+    private val mapCategory = HashMap<Int, Category>()
+
+    init {
+        CoroutineScope(Dispatchers.IO).launch {
+            getAllCategories().collect {
+                for (i in it) {
+                    mapCategory[i.id] = i
+                }
+            }
+        }
+    }
 
     override fun getTransactionFromExcelFile(inputStream: InputStream): List<TransactionModel> {
 
@@ -98,10 +113,10 @@ class TransactionRepositoryImpl @Inject constructor(
     }
 
     override fun getCategoryById(categoryId: Int): Category {
-        val category = db.categoryDao().getCategoryById(categoryId)
+        val category = mapCategory[categoryId]
             ?: throw CustomException(
                 errorMessage = "Category Not Found",
             )
-        return category.toCategory()
+        return category
     }
 }

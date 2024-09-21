@@ -2,7 +2,9 @@ package com.example.financetracker.domain.model.local
 
 import com.example.financetracker.data.models.TransactionEntity
 import com.example.financetracker.data.models.local.PaymentType
+import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 
 data class Transaction(
     val amount: Float,
@@ -12,7 +14,8 @@ data class Transaction(
     val tagId: Int,
     val notes: String,
     val paymentType: PaymentType,
-    val paymentSourceId: Int
+    val paymentSourceId: Int,
+    var category: Category = Category.newInstance()
 ) {
     companion object {
         fun TransactionEntity.toTransaction(): Transaction {
@@ -40,5 +43,35 @@ data class Transaction(
                 paymentSourceId = this.paymentSourceId
             )
         }
+
+        fun defaultList() = listOf(
+            Transaction(
+                id = 34,
+                amount = 334.4f,
+                dateTime = Date(),
+                categoryId = 39,
+                tagId = 0,
+                notes = "Bike",
+                paymentType = PaymentType.Expense,
+                paymentSourceId = 0,
+                category = Category.other()
+            ),
+            Transaction(
+                id = 36,
+                amount = 100.4f,
+                dateTime = Date(),
+                categoryId = 39,
+                tagId = 0,
+                notes = "Car",
+                paymentType = PaymentType.Expense,
+                paymentSourceId = 0,
+                category = Category.other()
+            )
+        )
+    }
+
+    fun getReadableDateTime(): String {
+        val dateFormat = SimpleDateFormat("hh:mm a, dd/MMM", Locale.ENGLISH)
+        return dateFormat.format(dateTime)
     }
 }

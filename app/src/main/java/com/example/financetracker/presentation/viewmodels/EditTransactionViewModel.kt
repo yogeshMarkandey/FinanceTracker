@@ -12,6 +12,7 @@ import com.example.financetracker.domain.model.usecase.transaction.AddTransactio
 import com.example.financetracker.domain.model.usecase.transaction.GetAllTransactionBetweenUseCase
 import com.example.financetracker.domain.model.usecase.transaction.GetTransactionByIdUseCase
 import com.example.financetracker.domain.model.usecase.transaction.UpdateTransactionUseCase
+import com.example.financetracker.presentation.screens.home.states.EditTransactionScreenStates
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -29,6 +30,8 @@ class EditTransactionViewModel @Inject constructor(
     private val TAG = this::class.java.name
 
     private val _isLoading = mutableStateOf(false)
+    private val _errorMessage = mutableStateOf("")
+    private val _screenStates = mutableStateOf(EditTransactionScreenStates.INITIAL)
     private val _allCategories = mutableStateOf(emptyList<Category>())
     private val _selectedCategories = mutableStateOf(Category.other())
 
@@ -41,6 +44,8 @@ class EditTransactionViewModel @Inject constructor(
 
     val allCategory get() = _allCategories
     val selectedCategory get() = _selectedCategories
+    val errorMessage get() = _errorMessage
+    val screenStates get() = _screenStates
 
     fun updateAmountText(value: String) {
         val newAmount = value.replace(Regex("[^\\d.]"), "")
@@ -81,13 +86,21 @@ class EditTransactionViewModel @Inject constructor(
         calendar.value = newCalendar
     }
 
+    private var tryingToSave = false
     fun saveTransaction() {
+        if (tryingToSave) {
+            return
+        }
+        tryingToSave = true
+        _screenStates.value = EditTransactionScreenStates.LOADING
         val amount = try {
             amountText.value.toFloat()
         } catch (e: Exception) {
+            _errorMessage.value = e.message ?: "Something went wrong!"
+            _screenStates.value = EditTransactionScreenStates.UPDATE_ERROR
+            tryingToSave = false
             return
         }
-        Log.d(TAG, "saveTransaction: Amount: $amount")
         val txn = Transaction(
             id = System.currentTimeMillis().toInt(),
             amount = amount,
@@ -101,6 +114,8 @@ class EditTransactionViewModel @Inject constructor(
 
         CoroutineScope(Dispatchers.IO).launch {
             addTransactionUseCase.execute(txn)
+            _screenStates.value = EditTransactionScreenStates.UPDATE_SUCCESSFUL
+            tryingToSave = false
         }
     }
 

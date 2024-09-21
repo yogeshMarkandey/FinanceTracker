@@ -72,8 +72,8 @@ object AppModule {
     }
 
     @Provides
-    fun getGetCategoryByIdUseCase(categoryDAO: CategoryDAO): GetCategoryByIdUseCase {
-        return GetCategoryByIdUseCaseImpl(categoryDAO)
+    fun getGetCategoryByIdUseCase(repository: TransactionRepository): GetCategoryByIdUseCase {
+        return GetCategoryByIdUseCaseImpl(repository)
     }
 
     @Provides
