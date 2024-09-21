@@ -38,10 +38,17 @@ fun MainScreen(
     }
 
     NavHost(navController = mainNavController, startDestination = Routes.ROOT) {
-        composable(Routes.EditTransactionScreen) {
+        composable(Routes.EditTransactionScreen, arguments = listOf(
+            navArgument("transactionId") {
+                defaultValue = -1
+                type = NavType.IntType
+            }
+        )) {
+            val id = it.arguments?.getInt("transactionId")
             EditTransactionScreen(
                 modifier = modifier,
                 navController = mainNavController,
+                transactionId = id
             )
         }
 
@@ -73,7 +80,7 @@ fun RootScreen(
         bottomBar = { BottomNavigationBar(navController = bottomNavController) },
         floatingActionButton = {
             FloatingActionButton(onClick = {
-                mainNavController.navigate(Routes.EditTransactionScreen)
+                mainNavController.navigate(Routes.routeEditTransaction())
             }) {
                 Icon(Icons.Default.Add, contentDescription = "Add Transaction")
             }
@@ -82,9 +89,10 @@ fun RootScreen(
         isFloatingActionButtonDocked = true
     ) {
         MainScreenBottomNavigationGraph(
-            navController = bottomNavController,
-            viewModel,
-            Modifier.padding(it),
+            bottomNavController = bottomNavController,
+            mainNavController = mainNavController,
+            viewModel = viewModel,
+            modifier = Modifier.padding(it),
         )
     }
 }

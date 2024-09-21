@@ -19,7 +19,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(
     private val getAllTransactionBetweenUseCase: GetAllTransactionBetweenUseCase,
-    private val getCategoryByIdUseCase: GetCategoryByIdUseCase
+    private val getCategoryByIdUseCase: GetCategoryByIdUseCase,
 ) : ViewModel() {
     private val TAG = this::class.java.name
     private val _latestTransaction = mutableStateOf(emptyList<Transaction>())

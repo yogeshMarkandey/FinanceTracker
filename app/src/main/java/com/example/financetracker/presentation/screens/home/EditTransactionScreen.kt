@@ -81,11 +81,13 @@ fun EditTransactionScreen(
     modifier: Modifier,
     viewModel: EditTransactionViewModel = hiltViewModel(),
     navController: NavController,
+    transactionId: Int? = null
 ) {
     val context = LocalContext.current
     var loading by remember { mutableStateOf(false) }
     val errorMessage by remember { viewModel.errorMessage }
     val screenStates by remember { viewModel.screenStates }
+    val isEditMode by remember { viewModel.isEditMode }
     val calendar by remember { viewModel.calendar }
     val selectedDate =
         "${calendar.get(Calendar.DAY_OF_MONTH)}/${calendar.get(Calendar.MONTH) + 1}/" +
@@ -138,13 +140,20 @@ fun EditTransactionScreen(
 
     var categoryBottomSheetEditMode by remember { mutableStateOf(false) }
 
+    LaunchedEffect(key1 = Unit) {
+        if (transactionId != null) {
+            viewModel.loadTransactionById(transactionId)
+        }
+    }
+
     LaunchedEffect(key1 = screenStates) {
         loading = screenStates == EditTransactionScreenStates.LOADING
         when (screenStates) {
-            EditTransactionScreenStates.UPDATE_SUCCESSFUL -> {
+            EditTransactionScreenStates.UPDATE_SUCCESS -> {
                 navController.popBackStack()
             }
 
+            EditTransactionScreenStates.LOAD_TRANSACTION_ERROR,
             EditTransactionScreenStates.UPDATE_ERROR -> {
                 Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
             }
@@ -234,7 +243,8 @@ fun EditTransactionScreen(
             showAmountError = showAmountError,
             onSaveTransactionClick = {
                 viewModel.saveTransaction()
-            }
+            },
+            isEditMode = isEditMode
         )
     }
 }
@@ -257,6 +267,7 @@ private fun EditTransactionScreenContent(
     onSelectPaymentType: (PaymentType) -> Unit,
     showAmountError: Boolean,
     onSaveTransactionClick: () -> Unit,
+    isEditMode: Boolean,
 ) {
     Scaffold(
         modifier = modifier,
@@ -270,7 +281,7 @@ private fun EditTransactionScreenContent(
                         }
                     }
                     Spacer(modifier = Modifier.width(12.dp))
-                    Text(text = "Edit Transaction")
+                    Text(text = "${if (isEditMode) "Edit" else "Add"} Transaction")
                 },
             )
         },
@@ -283,8 +294,7 @@ private fun EditTransactionScreenContent(
         }
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Top,
         ) {
             Row(
@@ -518,7 +528,8 @@ private fun EditScreenPreview() {
             selectedPaymentType = PaymentType.Expense,
             onSelectPaymentType = {},
             showAmountError = true,
-            onSaveTransactionClick = {}
+            onSaveTransactionClick = {},
+            isEditMode = false,
         )
     }
 }

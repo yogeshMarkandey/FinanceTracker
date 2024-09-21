@@ -62,7 +62,7 @@ data class Transaction(
                 dateTime = Date(),
                 categoryId = 39,
                 tagId = 0,
-                notes = "Car",
+                notes = "Car wipenpwe eiwpepeoc iepw  onwoenwpeon eiweinwe eowp",
                 paymentType = PaymentType.Expense,
                 paymentSourceId = 0,
                 category = Category.other()

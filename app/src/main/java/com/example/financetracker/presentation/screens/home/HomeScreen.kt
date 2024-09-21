@@ -33,15 +33,19 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.example.financetracker.domain.model.local.Transaction
+import com.example.financetracker.presentation.screens.navigation.Routes
 import com.example.financetracker.presentation.ui.theme.FinanceTrackerTheme
 import com.example.financetracker.presentation.viewmodels.HomeScreenViewModel
 import com.example.financetracker.presentation.widgets.CategoryIconCompose
+import com.example.financetracker.presentation.widgets.TransactionDetailsWidget
 
 @Composable
 fun HomeScreen(
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     viewModel: HomeScreenViewModel = hiltViewModel(),
+    navController: NavController,
 ) {
     val isLoading = remember {
         viewModel.isLoading
@@ -63,7 +67,10 @@ fun HomeScreen(
         latestTransaction = latestTransaction,
         incomeAmount = incomeAmount,
         balanceAmount = balance,
-        spendingAmount = spendingAmount
+        spendingAmount = spendingAmount,
+        onTransactionClicked = {
+            navController.navigate(Routes.routeEditTransaction(it.id))
+        }
     )
 }
 
@@ -75,6 +82,7 @@ fun HomeScreenContent(
     incomeAmount: Float,
     balanceAmount: Float,
     spendingAmount: Float,
+    onTransactionClicked: (Transaction) -> Unit,
 ) {
     val scrollState = rememberLazyListState()
     Surface(
@@ -119,48 +127,12 @@ fun HomeScreenContent(
                     }
                     items(latestTransaction.size) { index ->
                         val transaction = latestTransaction[index]
-                        Row(
-                            modifier = Modifier
-                                .padding(horizontal = 12.dp, vertical = 6.dp)
-                                .fillMaxWidth()
-                                .background(
-                                    color = Color.LightGray.copy(alpha = 0.25f),
-                                    shape = RoundedCornerShape(8.dp)
-                                )
-                                .padding(horizontal = 12.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            CategoryIconCompose(
-                                modifier = Modifier.width(80.dp),
-                                category = transaction.category,
-                                isSelected = false,
-                                onClick = {},
-                            )
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 12.dp),
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = "Rs ${transaction.amount} /-",
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Text(
-                                        text = transaction.getReadableDateTime(),
-                                        fontWeight = FontWeight.Light,
-                                        fontSize = 12.sp
-                                    )
-                                }
-                                Box(modifier = Modifier.height(12.dp))
-                                Text(text = transaction.notes, fontWeight = FontWeight.Normal)
-                            }
-                        }
+                        TransactionDetailsWidget(
+                            transaction = transaction,
+                            onTransactionClicked = {
+                                onTransactionClicked(transaction)
+                            },
+                        )
                     }
                 }
             }
@@ -288,6 +260,7 @@ private fun PreviewHomeScreen() {
             balanceAmount = 1220f,
             spendingAmount = 12200f,
             incomeAmount = 122000f,
+            onTransactionClicked = {}
         )
     }
 }

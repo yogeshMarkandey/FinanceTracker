@@ -8,6 +8,7 @@ import com.example.financetracker.data.models.local.PaymentType
 import com.example.financetracker.domain.model.local.Category
 import com.example.financetracker.domain.model.local.Transaction
 import com.example.financetracker.domain.model.usecase.category.GetAllCategoryUseCase
+import com.example.financetracker.domain.model.usecase.category.GetCategoryByIdUseCase
 import com.example.financetracker.domain.model.usecase.transaction.AddTransactionUseCase
 import com.example.financetracker.domain.model.usecase.transaction.GetAllTransactionBetweenUseCase
 import com.example.financetracker.domain.model.usecase.transaction.GetTransactionByIdUseCase
@@ -25,15 +26,16 @@ class EditTransactionViewModel @Inject constructor(
     private val addTransactionUseCase: AddTransactionUseCase,
     private val updateTransactionUseCase: UpdateTransactionUseCase,
     private val getAllTransactionBetweenUseCase: GetAllTransactionBetweenUseCase,
-    private val getTransactionByIdUseCase: GetTransactionByIdUseCase
+    private val getTransactionByIdUseCase: GetTransactionByIdUseCase,
+    private val getCategoryByIdUseCase: GetCategoryByIdUseCase,
 ) : ViewModel() {
     private val TAG = this::class.java.name
 
-    private val _isLoading = mutableStateOf(false)
     private val _errorMessage = mutableStateOf("")
     private val _screenStates = mutableStateOf(EditTransactionScreenStates.INITIAL)
     private val _allCategories = mutableStateOf(emptyList<Category>())
     private val _selectedCategories = mutableStateOf(Category.other())
+    private val _loadedTransaction = mutableStateOf<Transaction?>(null)
 
     val calendar = mutableStateOf(Calendar.getInstance())
     val amountText = mutableStateOf("0.00")
@@ -46,6 +48,8 @@ class EditTransactionViewModel @Inject constructor(
     val selectedCategory get() = _selectedCategories
     val errorMessage get() = _errorMessage
     val screenStates get() = _screenStates
+
+    val isEditMode = mutableStateOf(false)
 
     fun updateAmountText(value: String) {
         val newAmount = value.replace(Regex("[^\\d.]"), "")
@@ -101,8 +105,14 @@ class EditTransactionViewModel @Inject constructor(
             tryingToSave = false
             return
         }
+
+        val id =
+            if (isEditMode.value)
+                _loadedTransaction.value!!.id
+            else System.currentTimeMillis().toInt()
+
         val txn = Transaction(
-            id = System.currentTimeMillis().toInt(),
+            id = id,
             amount = amount,
             dateTime = calendar.value.time,
             categoryId = selectedCategory.value.id,
@@ -113,8 +123,12 @@ class EditTransactionViewModel @Inject constructor(
         )
 
         CoroutineScope(Dispatchers.IO).launch {
-            addTransactionUseCase.execute(txn)
-            _screenStates.value = EditTransactionScreenStates.UPDATE_SUCCESSFUL
+            if (isEditMode.value) {
+                updateTransactionUseCase.execute(txn)
+            } else {
+                addTransactionUseCase.execute(txn)
+            }
+            _screenStates.value = EditTransactionScreenStates.UPDATE_SUCCESS
             tryingToSave = false
         }
     }
@@ -131,6 +145,48 @@ class EditTransactionViewModel @Inject constructor(
                 Log.d(TAG, "Called: list length: ${list.size}")
             }
         }
+    }
+
+    fun loadTransactionById(id: Int) {
+        _screenStates.value = EditTransactionScreenStates.LOADING
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val transaction = getTransactionByIdUseCase.execute(id)
+                if (transaction == null) {
+                    errorMessage.value = "Transaction Not Found"
+                    _screenStates.value = EditTransactionScreenStates.LOAD_TRANSACTION_ERROR
+                    return@launch
+                }
+                isEditMode.value = true
+                populateTransactionDetails(transaction)
+                _loadedTransaction.value = transaction
+                _screenStates.value = EditTransactionScreenStates.LOAD_TRANSACTION_SUCCESS
+            } catch (e: Exception) {
+                errorMessage.value = e.message ?: "Error while loading transaction"
+                screenStates.value = EditTransactionScreenStates.LOAD_TRANSACTION_ERROR
+                isEditMode.value = false
+            }
+        }
+    }
+
+    private fun getCategoryDetailsById(id: Int): Category {
+        return try {
+            getCategoryByIdUseCase.execute(id)
+        } catch (e: Exception) {
+            Log.e(TAG, "getCategoryDetailsById: Error: Getting Category by Id: $id", e)
+            Category.newInstance()
+        }
+    }
+
+    private fun populateTransactionDetails(transaction: Transaction) {
+        updateAmountText("${transaction.amount}")
+        updateNoteText(transaction.notes)
+        updateSelectedPaymentType(transaction.paymentType)
+        val category = getCategoryDetailsById(transaction.categoryId)
+        val calendar = Calendar.getInstance()
+        calendar.time = transaction.dateTime
+        this.calendar.value = calendar
+        updateSelectedCategory(category)
     }
 
     fun updateCategoryList(list: List<Category>) {
