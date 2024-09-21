@@ -260,7 +260,6 @@ private fun EditTransactionScreenContent(
 ) {
     Scaffold(
         modifier = modifier,
-        backgroundColor = MaterialTheme.colorScheme.background,
         contentColor = MaterialTheme.colorScheme.primary,
         topBar = {
             TopAppBar(

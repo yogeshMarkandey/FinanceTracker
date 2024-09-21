@@ -15,7 +15,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             FinanceTrackerTheme(
-                darkTheme = false
+                darkTheme = true
             ) {
                 MainScreen()
             }

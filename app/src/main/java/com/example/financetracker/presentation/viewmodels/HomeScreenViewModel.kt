@@ -1,8 +1,10 @@
 package com.example.financetracker.presentation.viewmodels
 
 import android.util.Log
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import com.example.financetracker.data.models.local.PaymentType
 import com.example.financetracker.domain.model.local.Category
 import com.example.financetracker.domain.model.local.Transaction
 import com.example.financetracker.domain.model.usecase.category.GetCategoryByIdUseCase
@@ -25,6 +27,10 @@ class HomeScreenViewModel @Inject constructor(
     val isLoading get() = _isLoading
     val latestTransaction get() = _latestTransaction
 
+    val balanceAmount = mutableFloatStateOf(0.0f)
+    val spendingAmount = mutableFloatStateOf(0.0f)
+    val incomeAmount = mutableFloatStateOf(0.0f)
+
 
     fun loadLatestTransaction() {
         _isLoading.value = true
@@ -36,12 +42,36 @@ class HomeScreenViewModel @Inject constructor(
                 start = startCalender.time,
                 end = calendar.time
             ).collect {
-                for (i in it) {
-                    i.category = getCategoryDetailsById(i.categoryId)
-                }
+                addCategoryDetailsEachTransaction(it)
+                updateMonthSummary(it)
                 _latestTransaction.value = it
                 _isLoading.value = false
             }
+        }
+    }
+
+    private fun updateMonthSummary(transactions: List<Transaction>) {
+        var income = 0.0f
+        var expense = 0.0f
+        transactions.forEach { transaction ->
+            if (transaction.paymentType == PaymentType.Expense) {
+                expense += transaction.amount
+            } else {
+                income += transaction.amount
+            }
+        }
+
+        val balance: Float = income - expense
+
+        balanceAmount.floatValue = balance
+        incomeAmount.floatValue = income
+        spendingAmount.floatValue = expense
+
+    }
+
+    private fun addCategoryDetailsEachTransaction(transactions: List<Transaction>) {
+        for (i in transactions) {
+            i.category = getCategoryDetailsById(i.categoryId)
         }
     }
 
