@@ -8,8 +8,10 @@ import com.example.financetracker.data.models.local.dao.CategoryWiseBudgetDAO
 import com.example.financetracker.data.models.local.dao.TransactionsDAO
 import com.example.financetracker.data.repository.BudgetRepositoryImpl
 import com.example.financetracker.data.repository.TransactionRepositoryImpl
+import com.example.financetracker.data.usecase.budget.GetBudgetByIdUseCaseImpl
 import com.example.financetracker.data.usecase.budget.GetBudgetByStartDateUseCaseImpl
 import com.example.financetracker.data.usecase.budget.SaveBudgetUseCaseImpl
+import com.example.financetracker.data.usecase.budget.UpdateBudgetUseCaseImpl
 import com.example.financetracker.data.usecase.category.AddCategoryUseCaseImpl
 import com.example.financetracker.data.usecase.category.GetAllCategoryUseCaseImpl
 import com.example.financetracker.data.usecase.category.GetCategoryByIdUseCaseImpl
@@ -22,8 +24,10 @@ import com.example.financetracker.data.usecase.transaction.GetTransactionByIdUse
 import com.example.financetracker.data.usecase.transaction.UpdateTransactionUseCaseImpl
 import com.example.financetracker.domain.repository.BudgetRepository
 import com.example.financetracker.domain.repository.TransactionRepository
+import com.example.financetracker.domain.usecase.budget.GetBudgetByIdUseCase
 import com.example.financetracker.domain.usecase.budget.GetBudgetByStartDateUseCase
 import com.example.financetracker.domain.usecase.budget.SaveBudgetUseCase
+import com.example.financetracker.domain.usecase.budget.UpdateBudgetUseCase
 import com.example.financetracker.domain.usecase.category.AddCategoryUseCase
 import com.example.financetracker.domain.usecase.category.GetAllCategoryUseCase
 import com.example.financetracker.domain.usecase.category.GetCategoryByIdUseCase
@@ -79,9 +83,14 @@ object AppModule {
     @Provides
     fun getBudgetRepository(
         budgetDAO: BudgetDAO,
-        categoryBudgetDAO: CategoryWiseBudgetDAO
+        categoryBudgetDAO: CategoryWiseBudgetDAO,
+        categoryDAO: CategoryDAO,
     ): BudgetRepository {
-        return BudgetRepositoryImpl(budgetDAO, categoryBudgetDAO)
+        return BudgetRepositoryImpl(
+            budgetDAO = budgetDAO,
+            categoryBudgetDAO = categoryBudgetDAO,
+            categoryDAO = categoryDAO,
+        )
     }
 
     @Singleton
@@ -116,7 +125,7 @@ object AppModule {
     }
 
     @Provides
-    fun getGetAvailableIconsUseCase(@ApplicationContext context: Context): GetAvailableIconsUseCase {
+    fun getGetAvailableIconsUseCase(): GetAvailableIconsUseCase {
         return GetAvailableIconsUseCaseImpl()
     }
 
@@ -148,5 +157,15 @@ object AppModule {
     @Provides
     fun getGetBudgetByStartDateUC(repository: BudgetRepository): GetBudgetByStartDateUseCase {
         return GetBudgetByStartDateUseCaseImpl(repository)
+    }
+
+    @Provides
+    fun getGetBudgetByIdUC(repository: BudgetRepository): GetBudgetByIdUseCase {
+        return GetBudgetByIdUseCaseImpl(repository)
+    }
+
+    @Provides
+    fun getUpdateBudgetUC(repository: BudgetRepository): UpdateBudgetUseCase {
+        return UpdateBudgetUseCaseImpl(repository)
     }
 }

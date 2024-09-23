@@ -97,7 +97,7 @@ class TransactionRepositoryImpl @Inject constructor(
     }
 
     override fun getAllCategories(): Flow<List<Category>> {
-        return db.categoryDao().getAllCategories().map { list ->
+        return db.categoryDao().getAllCategoriesObservable().map { list ->
             list.map { entity ->
                 entity.toCategory()
             }

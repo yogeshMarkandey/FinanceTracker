@@ -5,8 +5,10 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.example.financetracker.data.models.local.PaymentType
+import com.example.financetracker.domain.model.local.Budget
 import com.example.financetracker.domain.model.local.Category
 import com.example.financetracker.domain.model.local.Transaction
+import com.example.financetracker.domain.usecase.budget.GetBudgetByStartDateUseCase
 import com.example.financetracker.domain.usecase.category.GetCategoryByIdUseCase
 import com.example.financetracker.domain.usecase.transaction.GetAllTransactionBetweenUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,16 +22,21 @@ import javax.inject.Inject
 class HomeScreenViewModel @Inject constructor(
     private val getAllTransactionBetweenUseCase: GetAllTransactionBetweenUseCase,
     private val getCategoryByIdUseCase: GetCategoryByIdUseCase,
+    private val getBudgetByStartDateUseCase: GetBudgetByStartDateUseCase,
 ) : ViewModel() {
+
     private val TAG = this::class.java.name
+
     private val _latestTransaction = mutableStateOf(emptyList<Transaction>())
     private val _isLoading = mutableStateOf(false)
+    private val _activeBudgets = mutableStateOf(emptyList<Budget>())
+
     val isLoading get() = _isLoading
     val latestTransaction get() = _latestTransaction
-
     val balanceAmount = mutableFloatStateOf(0.0f)
     val spendingAmount = mutableFloatStateOf(0.0f)
     val incomeAmount = mutableFloatStateOf(0.0f)
+    val activeBudgets get() = _activeBudgets
 
 
     fun loadLatestTransaction() {
@@ -49,6 +56,20 @@ class HomeScreenViewModel @Inject constructor(
             }
         }
     }
+
+    fun loadBudgetByStartDate() {
+        CoroutineScope(Dispatchers.IO).launch {
+            val start = Calendar.getInstance()
+            val end = Calendar.getInstance()
+            start.set(2024, 8, 1)
+            end.set(2024, 8, 30)
+
+            getBudgetByStartDateUseCase.execute(start.time, end.time).collect {
+                _activeBudgets.value = it
+            }
+        }
+    }
+
 
     private fun updateMonthSummary(transactions: List<Transaction>) {
         var income = 0.0f

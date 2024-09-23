@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Warning
 import com.example.financetracker.data.models.local.CategoryEntity
 import com.example.financetracker.data.models.local.PaymentType
 import java.util.Date
@@ -64,6 +65,19 @@ data class Category(
                 notes = "Other",
                 createdOn = Date(),
                 icon = Icons.Default.Settings.name,
+                color = StandardColor.red(),
+                updatedOn = Date(),
+            )
+        }
+
+        fun na(): Category {
+            return Category(
+                id = 0,
+                title = "NA",
+                type = PaymentType.Expense,
+                notes = "NA",
+                createdOn = Date(),
+                icon = Icons.Default.Warning.name,
                 color = StandardColor.red(),
                 updatedOn = Date(),
             )

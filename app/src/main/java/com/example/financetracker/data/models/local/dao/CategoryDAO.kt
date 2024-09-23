@@ -12,8 +12,10 @@ import kotlinx.coroutines.flow.Flow
 interface CategoryDAO {
     @Transaction
     @Query("SELECT * FROM category")
-    fun getAllCategories(): Flow<List<CategoryEntity>>
+    fun getAllCategoriesObservable(): Flow<List<CategoryEntity>>
 
+    @Query("SELECT * FROM category")
+    fun getAllCategories(): List<CategoryEntity>
 
     @Insert
     fun addCategory(vararg category: CategoryEntity)

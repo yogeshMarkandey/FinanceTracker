@@ -19,6 +19,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.financetracker.presentation.screens.home.BottomNavigationBar
+import com.example.financetracker.presentation.screens.home.EditBudgetScreen
 import com.example.financetracker.presentation.screens.home.EditCategoryScreen
 import com.example.financetracker.presentation.screens.home.EditTransactionScreen
 import com.example.financetracker.presentation.screens.navigation.MainScreenBottomNavigationGraph
@@ -60,6 +61,19 @@ fun MainScreen(
         )) {
             val id = it.arguments?.getInt("categoryId")
             EditCategoryScreen(navController = mainNavController, categoryId = id)
+        }
+
+        composable(route = Routes.EditBudgetScreen, arguments = listOf(
+            navArgument("budgetId") {
+                defaultValue = -1
+                type = NavType.IntType
+            }
+        )) {
+            val id = it.arguments?.getInt("budgetId")
+            EditBudgetScreen(
+                navController = mainNavController,
+                budgetId = id
+            )
         }
 
         composable(route = Routes.ROOT) {

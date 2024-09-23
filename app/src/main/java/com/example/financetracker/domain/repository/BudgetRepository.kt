@@ -6,6 +6,7 @@ import java.util.Date
 
 interface BudgetRepository {
     suspend fun getBudgetsStartBetween(start: Date, end: Date): Flow<List<Budget>>
+    suspend fun getBudgetById(id: Int): Budget
     fun saveBudget(budget: Budget)
     fun updateBudget(budget: Budget)
 }

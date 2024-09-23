@@ -2,6 +2,7 @@ package com.example.financetracker.presentation.screens.home
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -34,11 +41,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.financetracker.domain.model.local.Budget
 import com.example.financetracker.domain.model.local.Transaction
 import com.example.financetracker.presentation.screens.navigation.Routes
 import com.example.financetracker.presentation.ui.theme.FinanceTrackerTheme
 import com.example.financetracker.presentation.viewmodels.HomeScreenViewModel
-import com.example.financetracker.presentation.widgets.CategoryIconCompose
 import com.example.financetracker.presentation.widgets.TransactionDetailsWidget
 
 @Composable
@@ -54,11 +61,13 @@ fun HomeScreen(
     val balance by remember { viewModel.balanceAmount }
     val spendingAmount by remember { viewModel.spendingAmount }
     val incomeAmount by remember { viewModel.incomeAmount }
+    val activeBudgetsThisMonth by remember { viewModel.activeBudgets }
 
     val latestTransaction by remember { viewModel.latestTransaction }
 
     LaunchedEffect(key1 = Unit) {
         viewModel.loadLatestTransaction()
+        viewModel.loadBudgetByStartDate()
     }
 
     HomeScreenContent(
@@ -70,7 +79,11 @@ fun HomeScreen(
         spendingAmount = spendingAmount,
         onTransactionClicked = {
             navController.navigate(Routes.routeEditTransaction(it.id))
-        }
+        },
+        onBudgetClicked = { id ->
+            navController.navigate(Routes.routeEditBudget(id))
+        },
+        activeBudgetsThisMonth = activeBudgetsThisMonth,
     )
 }
 
@@ -83,8 +96,11 @@ fun HomeScreenContent(
     balanceAmount: Float,
     spendingAmount: Float,
     onTransactionClicked: (Transaction) -> Unit,
+    onBudgetClicked: (id: Int?) -> Unit = {},
+    activeBudgetsThisMonth: List<Budget>,
 ) {
     val scrollState = rememberLazyListState()
+    val transactionLength = if (latestTransaction.size < 5) latestTransaction.size else 5
     Surface(
         modifier = modifier.fillMaxSize(),
     ) {
@@ -119,13 +135,28 @@ fun HomeScreenContent(
                     }
 
                     item {
-                        Text(
-                            text = "Latest Transactions",
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(vertical = 12.dp, horizontal = 12.dp)
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier
+                                .padding(horizontal = 12.dp, vertical = 12.dp)
+                                .fillMaxWidth()
+                        ) {
+                            Text(
+                                text = "Latest Transactions",
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(vertical = 12.dp, horizontal = 12.dp)
+                            )
+
+                            Text(
+                                text = "See more",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
                     }
-                    items(latestTransaction.size) { index ->
+
+                    items(transactionLength) { index ->
                         val transaction = latestTransaction[index]
                         TransactionDetailsWidget(
                             transaction = transaction,
@@ -134,9 +165,83 @@ fun HomeScreenContent(
                             },
                         )
                     }
+
+                    item {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier
+                                .padding(horizontal = 12.dp, vertical = 12.dp)
+                                .fillMaxWidth()
+                        ) {
+                            Text(
+                                text = "Active Budgets",
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(vertical = 12.dp, horizontal = 12.dp)
+                            )
+
+                            IconButton(onClick = { onBudgetClicked(null) }) {
+                                Icon(Icons.Default.Add, contentDescription = "Add Budget Icon")
+                            }
+                        }
+                    }
+
+                    items(activeBudgetsThisMonth.size) { index ->
+                        val budget = activeBudgetsThisMonth[index]
+
+                        ActiveBudgetItem(
+                            modifier = Modifier,
+                            budget = budget,
+                            onBudgetClicked = {
+                                onBudgetClicked(budget.id)
+                            },
+                        )
+                    }
+
+                    item {
+                        Box(modifier = Modifier.height(100.dp))
+                    }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun ActiveBudgetItem(modifier: Modifier, budget: Budget, onBudgetClicked: () -> Unit) {
+    Row(
+        modifier = modifier
+            .padding(horizontal = 12.dp, vertical = 6.dp)
+            .fillMaxWidth()
+            .background(
+                color = Color.LightGray.copy(alpha = 0.25f),
+                shape = RoundedCornerShape(8.dp)
+            )
+            .clickable { onBudgetClicked() }
+            .padding(horizontal = 12.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(Icons.Default.List, contentDescription = "Budget Icon")
+        Box(modifier = Modifier.width(12.dp))
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            Text(
+                text = budget.title,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1
+            )
+            Box(modifier = Modifier.height(6.dp))
+            Text(
+                text = "${budget.getReadableStartDate()} - ${budget.getReadableEndDate()}",
+                modifier = Modifier.fillMaxWidth(),
+                fontWeight = FontWeight.Light,
+                fontSize = 12.sp
+            )
+        }
+        Box(modifier = Modifier.width(12.dp))
+        Icon(Icons.Default.ArrowForward, contentDescription = "Open Icon")
+        Box(modifier = Modifier.width(12.dp))
     }
 }
 
@@ -260,7 +365,8 @@ private fun PreviewHomeScreen() {
             balanceAmount = 1220f,
             spendingAmount = 12200f,
             incomeAmount = 122000f,
-            onTransactionClicked = {}
+            onTransactionClicked = {},
+            activeBudgetsThisMonth = listOf(Budget.getDefault())
         )
     }
 }

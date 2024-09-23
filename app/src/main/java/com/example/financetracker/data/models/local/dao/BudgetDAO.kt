@@ -19,6 +19,9 @@ interface BudgetDAO {
     @Query("SELECT * FROM budget WHERE startDate BETWEEN :start AND :end")
     fun getStartBetween(start: Date, end: Date): Flow<List<BudgetEntity>>
 
+    @Query("SELECT * FROM budget WHERE id = :id LIMIT 1")
+    fun getById(id: Int): BudgetEntity?
+
     @Insert
     fun add(budget: BudgetEntity)
 
