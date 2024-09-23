@@ -1,0 +1,131 @@
+package com.example.financetracker.domain.model.local
+
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Warning
+import com.example.financetracker.data.models.local.CategoryEntity
+import com.example.financetracker.data.models.local.PaymentType
+import java.util.Date
+
+data class Category(
+    val id: Int,
+    val title: String,
+    val type: PaymentType,
+    val notes: String,
+    val createdOn: Date,
+    val icon: String,
+    val color: StandardColor,
+    val updatedOn: Date,
+) {
+    companion object {
+        fun CategoryEntity.toCategory(): Category {
+            return Category(
+                id = this.id,
+                title = title,
+                type = type,
+                notes = notes,
+                createdOn = createdOn,
+                icon = icon,
+                color = StandardColor(color, color),
+                updatedOn = updatedOn
+            )
+        }
+
+        fun Category.toCategoryEntity(): CategoryEntity {
+            return CategoryEntity(
+                id = this.id,
+                title = title,
+                type = type,
+                notes = notes,
+                createdOn = createdOn,
+                icon = icon,
+                color = color.hex,
+                updatedOn = updatedOn
+            )
+        }
+
+        fun newInstance() = Category(
+            id = -1,
+            title = "",
+            type = PaymentType.Expense,
+            notes = "",
+            createdOn = Date(),
+            icon = "",
+            color = StandardColor.red(),
+            updatedOn = Date(),
+        )
+
+        fun other(): Category {
+            return Category(
+                id = 1,
+                title = "Other",
+                type = PaymentType.Expense,
+                notes = "Other",
+                createdOn = Date(),
+                icon = Icons.Default.Settings.name,
+                color = StandardColor.red(),
+                updatedOn = Date(),
+            )
+        }
+
+        fun na(): Category {
+            return Category(
+                id = 0,
+                title = "NA",
+                type = PaymentType.Expense,
+                notes = "NA",
+                createdOn = Date(),
+                icon = Icons.Default.Warning.name,
+                color = StandardColor.red(),
+                updatedOn = Date(),
+            )
+        }
+
+        fun getDefaults(): List<Category> {
+            return arrayListOf(
+                Category(
+                    id = 1,
+                    title = "Shopping",
+                    type = PaymentType.Expense,
+                    notes = "",
+                    createdOn = Date(),
+                    icon = Icons.Default.Add.name,
+                    color = StandardColor.red(),
+                    updatedOn = Date(),
+                ),
+                Category(
+                    id = 2,
+                    title = "Rent",
+                    type = PaymentType.Expense,
+                    notes = "",
+                    createdOn = Date(),
+                    icon = Icons.Default.Edit.name,
+                    color = StandardColor.red(),
+                    updatedOn = Date(),
+                ),
+                Category(
+                    id = 3,
+                    title = "Salary",
+                    type = PaymentType.Income,
+                    notes = "",
+                    createdOn = Date(),
+                    icon = "",
+                    color = StandardColor.red(),
+                    updatedOn = Date(),
+                ),
+                Category(
+                    id = 4,
+                    title = "EMI",
+                    type = PaymentType.Expense,
+                    notes = "",
+                    createdOn = Date(),
+                    icon = "",
+                    color = StandardColor.red(),
+                    updatedOn = Date(),
+                )
+            )
+        }
+    }
+}
