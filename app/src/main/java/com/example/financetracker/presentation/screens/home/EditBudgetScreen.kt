@@ -81,6 +81,7 @@ fun EditBudgetScreen(
     val categoryBudget = remember { viewModel.categoryBudgets }
     val startCalendar by remember { viewModel.startCalender }
     val endCalendar by remember { viewModel.endCalender }
+    val balanceAmount by remember { viewModel.balanceAmount }
 
     val startDatePicker = DatePickerDialog(
         LocalContext.current,
@@ -166,7 +167,9 @@ fun EditBudgetScreen(
             viewModel.updateBudgetAmount(it)
         },
         budgetAmountError = budgetAmountError,
-        onValidateCategoryAmountInput = { viewModel.onValidateCategoryAmountInput(it) },
+        onValidateCategoryAmountInput = { value, index ->
+            viewModel.onValidateCategoryAmountInput(value, index)
+        },
         onEndDateClicked = {
             endDatePicker.show()
         },
@@ -175,7 +178,8 @@ fun EditBudgetScreen(
         },
         onTitleTextUpdate = {
             viewModel.updateBudgetTitle(it)
-        }
+        },
+        balanceAmount = balanceAmount
     )
 }
 
@@ -196,7 +200,8 @@ private fun EditBudgetScreenContent(
     budgetAmountError: String,
     categoryBudget: List<CategoryBudget>,
     onCategoryBudgetUpdate: (String, Int) -> Unit = { value: String, index: Int -> },
-    onValidateCategoryAmountInput: (String) -> String = { _ -> "" },
+    onValidateCategoryAmountInput: (String, Int) -> String = { _, _ -> "" },
+    balanceAmount: Float,
 ) {
     Scaffold(
         topBar = {
@@ -311,12 +316,35 @@ private fun EditBudgetScreenContent(
                     }
                 }
 
-                Text(
-                    text = "Edit Category Budget:",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(vertical = 12.dp)
-                )
+                Row(
+                    modifier = Modifier
+                        .padding(vertical = 12.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "Balance",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Box(modifier = Modifier.width(12.dp))
+                    Box(
+                        modifier = Modifier
+                            .background(
+                                color = Color.Gray.copy(alpha = 0.25f),
+                                shape = RoundedCornerShape(6.dp)
+                            )
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = balanceAmount.toString(),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
+                }
             }
 
             items(categoryBudget.size) { index ->
@@ -328,7 +356,9 @@ private fun EditBudgetScreenContent(
                     onAmountUpdate = {
                         onCategoryBudgetUpdate(it, index)
                     },
-                    onValidateCategoryAmountInput = onValidateCategoryAmountInput
+                    onValidateCategoryAmountInput = {
+                        onValidateCategoryAmountInput(it, index)
+                    }
                 )
             }
 
@@ -461,7 +491,8 @@ private fun Preview() {
             startDate = "12th Aug",
             budgetName = "June Month Budget",
             categoryBudget = CategoryBudget.getDefaultList(),
-            budgetAmountError = "Not a valid number."
+            budgetAmountError = "Not a valid number.",
+            balanceAmount = 1000f
         )
     }
 }

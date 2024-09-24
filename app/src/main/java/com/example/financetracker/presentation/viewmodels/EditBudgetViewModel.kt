@@ -45,6 +45,7 @@ class EditBudgetViewModel @Inject constructor(
     val budgetTitle = mutableStateOf("")
     val startCalender = mutableStateOf(Calendar.getInstance())
     val endCalender = mutableStateOf(Calendar.getInstance())
+    val balanceAmount = mutableStateOf(0f)
 
     fun saveBudget() {
         if (budgetAmountError.value.isNotBlank()) {
@@ -151,6 +152,11 @@ class EditBudgetViewModel @Inject constructor(
         this.startCalender.value = startCalender
         this.endCalender.value = endCalender
         categoryBudgets.addAll(budget.categoryBudgets.toMutableList())
+        var maxBudget = budgetAmount.value.toFloat()
+        categoryBudgets.forEach {
+            maxBudget -= it.amount
+        }
+        balanceAmount.value = maxBudget
 
     }
 
@@ -175,13 +181,23 @@ class EditBudgetViewModel @Inject constructor(
             newAmount = oldValue.toString()
         }
 
+        val floatValue = newAmount.toFloat()
+
+        val balance = balanceAmount.value + oldValue - floatValue
+
+        if (balance < 0) {
+            showError("Budget amount is exceeded.")
+            newAmount = oldValue.toString()
+        }
+
+        balanceAmount.value = balance
         val catBud = categoryBudgets[index].copyWith(amount = newAmount.toFloat())
         categoryBudgets[index] = catBud
     }
 
     fun updateBudgetAmount(value: String) {
         budgetAmountError.value = ""
-        val newAmount = value.replace(Regex("[^\\d.]"), "")
+        var newAmount = value.replace(Regex("[^\\d.]"), "")
         val regex = Regex("^\\d{0,8}(\\.\\d{1,5})?\$")
 
         if (!regex.matches(newAmount)) {
@@ -189,9 +205,20 @@ class EditBudgetViewModel @Inject constructor(
         }
 
         budgetAmount.value = newAmount
+
+        if (newAmount.isBlank()){
+            newAmount = "0"
+        }
+
+        var balance = newAmount.toFloat()
+        categoryBudgets.forEach {
+            balance -= it.amount
+        }
+        balanceAmount.value = balance
     }
 
-    fun onValidateCategoryAmountInput(value: String): String {
+    fun onValidateCategoryAmountInput(value: String, index: Int): String {
+        val oldValue = categoryBudgets[index].amount
         if (value.isBlank()) {
             return ""
         }
@@ -201,6 +228,14 @@ class EditBudgetViewModel @Inject constructor(
 
         if (!regex.matches(newAmount)) {
             return "Please enter valid number."
+        }
+
+        val floatValue = newAmount.toFloat()
+
+        val balance = balanceAmount.value + oldValue - floatValue
+
+        if (balance < 0) {
+            return "Budget amount is exceeded."
         }
 
         return ""
