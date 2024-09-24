@@ -5,11 +5,14 @@ import com.example.financetracker.data.dataprovider.local.TransactionDatabase
 import com.example.financetracker.data.models.local.dao.BudgetDAO
 import com.example.financetracker.data.models.local.dao.CategoryDAO
 import com.example.financetracker.data.models.local.dao.CategoryWiseBudgetDAO
+import com.example.financetracker.data.models.local.dao.TransactionBudgetCrossDAO
 import com.example.financetracker.data.models.local.dao.TransactionsDAO
 import com.example.financetracker.data.repository.BudgetRepositoryImpl
 import com.example.financetracker.data.repository.TransactionRepositoryImpl
 import com.example.financetracker.data.usecase.budget.GetBudgetByIdUseCaseImpl
 import com.example.financetracker.data.usecase.budget.GetBudgetByStartDateUseCaseImpl
+import com.example.financetracker.data.usecase.budget.GetBudgetForDateUseCaseImpl
+import com.example.financetracker.data.usecase.budget.GetBudgetForTransactionImpl
 import com.example.financetracker.data.usecase.budget.SaveBudgetUseCaseImpl
 import com.example.financetracker.data.usecase.budget.UpdateBudgetUseCaseImpl
 import com.example.financetracker.data.usecase.category.AddCategoryUseCaseImpl
@@ -26,6 +29,8 @@ import com.example.financetracker.domain.repository.BudgetRepository
 import com.example.financetracker.domain.repository.TransactionRepository
 import com.example.financetracker.domain.usecase.budget.GetBudgetByIdUseCase
 import com.example.financetracker.domain.usecase.budget.GetBudgetByStartDateUseCase
+import com.example.financetracker.domain.usecase.budget.GetBudgetForDateUseCase
+import com.example.financetracker.domain.usecase.budget.GetBudgetForTransactionUseCase
 import com.example.financetracker.domain.usecase.budget.SaveBudgetUseCase
 import com.example.financetracker.domain.usecase.budget.UpdateBudgetUseCase
 import com.example.financetracker.domain.usecase.category.AddCategoryUseCase
@@ -81,22 +86,38 @@ object AppModule {
 
     @Singleton
     @Provides
+    fun getTransactionBudgetCrossDao(db: TransactionDatabase): TransactionBudgetCrossDAO {
+        return db.transactionBudgetCrossDao()
+    }
+
+    @Singleton
+    @Provides
     fun getBudgetRepository(
         budgetDAO: BudgetDAO,
         categoryBudgetDAO: CategoryWiseBudgetDAO,
         categoryDAO: CategoryDAO,
+        transactionBudgetCrossDAO: TransactionBudgetCrossDAO,
     ): BudgetRepository {
         return BudgetRepositoryImpl(
             budgetDAO = budgetDAO,
             categoryBudgetDAO = categoryBudgetDAO,
             categoryDAO = categoryDAO,
+            transactionCrossRef = transactionBudgetCrossDAO,
         )
     }
 
     @Singleton
     @Provides
-    fun getTransactionRepository(db: TransactionDatabase): TransactionRepository {
-        return TransactionRepositoryImpl(db = db)
+    fun getTransactionRepository(
+        categoryDAO: CategoryDAO,
+        transactionsDAO: TransactionsDAO,
+        crossDAO: TransactionBudgetCrossDAO,
+    ): TransactionRepository {
+        return TransactionRepositoryImpl(
+            categoryDAO = categoryDAO,
+            transactionsDAO = transactionsDAO,
+            transactionBudgetCrossDAO = crossDAO,
+        )
     }
 
     @Provides
@@ -167,5 +188,15 @@ object AppModule {
     @Provides
     fun getUpdateBudgetUC(repository: BudgetRepository): UpdateBudgetUseCase {
         return UpdateBudgetUseCaseImpl(repository)
+    }
+
+    @Provides
+    fun getBudgetForDateUC(repository: BudgetRepository): GetBudgetForDateUseCase {
+        return GetBudgetForDateUseCaseImpl(repository)
+    }
+
+    @Provides
+    fun getGetBudgetForTransactionUC(repository: BudgetRepository): GetBudgetForTransactionUseCase {
+        return GetBudgetForTransactionImpl(repository)
     }
 }

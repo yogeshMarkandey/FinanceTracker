@@ -2,11 +2,15 @@ package com.example.financetracker.presentation.viewmodels
 
 import android.icu.util.Calendar
 import android.util.Log
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.example.financetracker.data.models.local.PaymentType
+import com.example.financetracker.domain.model.local.Budget
 import com.example.financetracker.domain.model.local.Category
 import com.example.financetracker.domain.model.local.Transaction
+import com.example.financetracker.domain.usecase.budget.GetBudgetForDateUseCase
+import com.example.financetracker.domain.usecase.budget.GetBudgetForTransactionUseCase
 import com.example.financetracker.domain.usecase.category.GetAllCategoryUseCase
 import com.example.financetracker.domain.usecase.category.GetCategoryByIdUseCase
 import com.example.financetracker.domain.usecase.transaction.AddTransactionUseCase
@@ -18,6 +22,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.util.Date
 import javax.inject.Inject
 
 @HiltViewModel
@@ -28,6 +33,8 @@ class EditTransactionViewModel @Inject constructor(
     private val getAllTransactionBetweenUseCase: GetAllTransactionBetweenUseCase,
     private val getTransactionByIdUseCase: GetTransactionByIdUseCase,
     private val getCategoryByIdUseCase: GetCategoryByIdUseCase,
+    private val getBudgetForDateUC: GetBudgetForDateUseCase,
+    private val getBudgetForTransactionUC: GetBudgetForTransactionUseCase,
 ) : ViewModel() {
     private val TAG = this::class.java.name
 
@@ -36,6 +43,8 @@ class EditTransactionViewModel @Inject constructor(
     private val _allCategories = mutableStateOf(emptyList<Category>())
     private val _selectedCategories = mutableStateOf(Category.other())
     private val _loadedTransaction = mutableStateOf<Transaction?>(null)
+    private val _availableBudgets = mutableStateOf(emptyList<Budget>())
+    private val _selectedBudget = mutableStateOf(emptyList<Budget>())
 
     val calendar = mutableStateOf(Calendar.getInstance())
     val amountText = mutableStateOf("0.00")
@@ -48,6 +57,9 @@ class EditTransactionViewModel @Inject constructor(
     val selectedCategory get() = _selectedCategories
     val errorMessage get() = _errorMessage
     val screenStates get() = _screenStates
+    val availableBudget get() = _availableBudgets
+    val selectedBudget get() = _selectedBudget
+    val showToastError = mutableIntStateOf(0)
 
     val isEditMode = mutableStateOf(false)
 
@@ -76,6 +88,7 @@ class EditTransactionViewModel @Inject constructor(
             calendar.value.get(Calendar.MINUTE)
         )
         calendar.value = newCalendar
+        loadBudgetForDate(newCalendar.time)
     }
 
     fun selectTime(hour: Int, minute: Int) {
@@ -95,6 +108,12 @@ class EditTransactionViewModel @Inject constructor(
         if (tryingToSave) {
             return
         }
+
+        if (_selectedBudget.value.isEmpty()) {
+            showError("Please select a budget")
+            return
+        }
+
         tryingToSave = true
         _screenStates.value = EditTransactionScreenStates.LOADING
         val amount = try {
@@ -119,7 +138,8 @@ class EditTransactionViewModel @Inject constructor(
             notes = noteText.value,
             paymentType = selectedPaymentType.value,
             tagId = 0,
-            paymentSourceId = 0
+            paymentSourceId = 0,
+            budgets = _selectedBudget.value
         )
 
         CoroutineScope(Dispatchers.IO).launch {
@@ -128,19 +148,22 @@ class EditTransactionViewModel @Inject constructor(
             } else {
                 addTransactionUseCase.execute(txn)
             }
-            _screenStates.value = EditTransactionScreenStates.UPDATE_SUCCESS
             tryingToSave = false
+            _screenStates.value = EditTransactionScreenStates.UPDATE_SUCCESS
         }
     }
 
 
     fun initViewModel() {
-        Log.d(TAG, "Init Called: ")
         CoroutineScope(Dispatchers.IO).launch {
             allCategoryUseCase.execute().collect { list ->
                 updateCategoryList(list.ifEmpty { Category.getDefaults() })
             }
         }
+    }
+
+    fun initNewTransactionCreation() {
+        loadBudgetForDate(calendar.value.time)
     }
 
     fun loadTransactionById(id: Int) {
@@ -155,13 +178,33 @@ class EditTransactionViewModel @Inject constructor(
                 }
                 isEditMode.value = true
                 populateTransactionDetails(transaction)
+                loadBudgetForDate(calendar.value.time)
+                val budgets = getBudgetForTransactionUC.execute(transaction.id)
+                _selectedBudget.value = budgets
                 _loadedTransaction.value = transaction
                 _screenStates.value = EditTransactionScreenStates.LOAD_TRANSACTION_SUCCESS
             } catch (e: Exception) {
                 errorMessage.value = e.message ?: "Error while loading transaction"
                 screenStates.value = EditTransactionScreenStates.LOAD_TRANSACTION_ERROR
                 isEditMode.value = false
+                Log.e(TAG, "loadTransactionById: $id", e)
             }
+        }
+    }
+
+    private fun showError(message: String) {
+        errorMessage.value = message
+        showToastError.intValue += 1
+    }
+
+    private fun loadBudgetForDate(date: Date) {
+        try {
+            CoroutineScope(Dispatchers.IO).launch {
+                val budget = getBudgetForDateUC.execute(date)
+                _availableBudgets.value = budget
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "initNewTransactionCreation: Error while loading budget.", e)
         }
     }
 
@@ -191,5 +234,9 @@ class EditTransactionViewModel @Inject constructor(
 
     fun updateSelectedCategory(category: Category) {
         _selectedCategories.value = category
+    }
+
+    fun updateSelectedBudget(list: List<Budget>) {
+        _selectedBudget.value = list
     }
 }

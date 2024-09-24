@@ -15,7 +15,8 @@ data class Transaction(
     val notes: String,
     val paymentType: PaymentType,
     val paymentSourceId: Int,
-    var category: Category = Category.newInstance()
+    var category: Category = Category.newInstance(),
+    var budgets: List<Budget>? = null,
 ) {
     companion object {
         fun TransactionEntity.toTransaction(): Transaction {

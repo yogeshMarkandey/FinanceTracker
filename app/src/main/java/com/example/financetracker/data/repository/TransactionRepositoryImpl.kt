@@ -1,7 +1,10 @@
 package com.example.financetracker.data.repository
 
-import com.example.financetracker.data.dataprovider.local.TransactionDatabase
+import com.example.financetracker.data.models.local.BudgetTransactionCrossRef
 import com.example.financetracker.data.models.local.TransactionModel
+import com.example.financetracker.data.models.local.dao.CategoryDAO
+import com.example.financetracker.data.models.local.dao.TransactionBudgetCrossDAO
+import com.example.financetracker.data.models.local.dao.TransactionsDAO
 import com.example.financetracker.data.utils.CustomException
 import com.example.financetracker.domain.model.local.Category
 import com.example.financetracker.domain.model.local.Category.Companion.toCategory
@@ -23,7 +26,9 @@ import javax.inject.Inject
 
 
 class TransactionRepositoryImpl @Inject constructor(
-    private val db: TransactionDatabase
+    private val categoryDAO: CategoryDAO,
+    private val transactionsDAO: TransactionsDAO,
+    private val transactionBudgetCrossDAO: TransactionBudgetCrossDAO,
 ) : TransactionRepository {
 
     private val mapCategory = HashMap<Int, Category>()
@@ -77,7 +82,7 @@ class TransactionRepositoryImpl @Inject constructor(
     }
 
     override fun getAllTransaction(): Flow<List<Transaction>> {
-        return db.transactionDao().getAllTransaction().map { list ->
+        return transactionsDAO.getAllTransaction().map { list ->
             list.map {
                 it.toTransaction()
             }
@@ -85,19 +90,47 @@ class TransactionRepositoryImpl @Inject constructor(
     }
 
     override fun updateTransaction(transaction: Transaction) {
-        db.transactionDao().update(transaction.toTransactionEntity())
+        saveTransactionBudgetCrossRef(transaction)
+        transactionsDAO.update(transaction.toTransactionEntity())
+    }
+
+    private fun saveTransactionBudgetCrossRef(transaction: Transaction) {
+        if (transaction.budgets.isNullOrEmpty()) {
+            return
+        }
+        val oldRefs = transactionBudgetCrossDAO.getByTransactionId(transaction.id)
+
+        val map = HashMap<String, BudgetTransactionCrossRef>()
+        oldRefs.forEach {
+            map["${it.transactionId}_${it.budgetId}"] = it.copyWith(status = "inactive")
+        }
+
+        transaction.budgets!!.forEach { bud ->
+            val ref = BudgetTransactionCrossRef(
+                id = "${transaction.id}_${bud.id}",
+                transactionId = transaction.id,
+                budgetId = bud.id,
+                status = "active"
+            )
+            map["${ref.transactionId}_${ref.budgetId}"] = ref
+        }
+
+        map.values.forEach {
+            transactionBudgetCrossDAO.add(it)
+        }
     }
 
     override fun addTransaction(transaction: Transaction) {
-        db.transactionDao().insertAll(transaction.toTransactionEntity())
+        saveTransactionBudgetCrossRef(transaction)
+        transactionsDAO.insertAll(transaction.toTransactionEntity())
     }
 
     override fun getTransactionById(id: Int): Transaction? {
-        return db.transactionDao().getById(id)?.toTransaction()
+        return transactionsDAO.getById(id)?.toTransaction()
     }
 
     override fun getAllCategories(): Flow<List<Category>> {
-        return db.categoryDao().getAllCategoriesObservable().map { list ->
+        return categoryDAO.getAllCategoriesObservable().map { list ->
             list.map { entity ->
                 entity.toCategory()
             }
@@ -105,11 +138,11 @@ class TransactionRepositoryImpl @Inject constructor(
     }
 
     override fun updateCategory(category: Category) {
-        db.categoryDao().updateCategory(category.toCategoryEntity())
+        categoryDAO.updateCategory(category.toCategoryEntity())
     }
 
     override fun addCategory(category: Category) {
-        db.categoryDao().addCategory(category.toCategoryEntity())
+        categoryDAO.addCategory(category.toCategoryEntity())
     }
 
     override fun getCategoryById(categoryId: Int): Category {

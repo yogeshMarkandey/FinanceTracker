@@ -4,6 +4,7 @@ package com.example.financetracker.data.repository
 import com.example.financetracker.data.models.local.dao.BudgetDAO
 import com.example.financetracker.data.models.local.dao.CategoryDAO
 import com.example.financetracker.data.models.local.dao.CategoryWiseBudgetDAO
+import com.example.financetracker.data.models.local.dao.TransactionBudgetCrossDAO
 import com.example.financetracker.data.utils.CustomException
 import com.example.financetracker.domain.model.local.Budget
 import com.example.financetracker.domain.model.local.Budget.Companion.toBudget
@@ -17,13 +18,13 @@ import com.example.financetracker.domain.repository.BudgetRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import java.util.Date
-import java.util.HashSet
 import javax.inject.Inject
 
 class BudgetRepositoryImpl @Inject constructor(
     private val budgetDAO: BudgetDAO,
     private val categoryBudgetDAO: CategoryWiseBudgetDAO,
     private val categoryDAO: CategoryDAO,
+    private val transactionCrossRef: TransactionBudgetCrossDAO,
 ) : BudgetRepository {
 
     override suspend fun getBudgetsStartBetween(start: Date, end: Date): Flow<List<Budget>> {
@@ -42,6 +43,27 @@ class BudgetRepositoryImpl @Inject constructor(
         val budget = budgetDAO.getById(id)?.toBudget() ?: throw CustomException("Budget not found")
         populateBudgetWithCategoryDetails(budget)
         return budget
+    }
+
+    override fun getBudgetsForTransaction(id: Int): List<Budget> {
+        val ref = transactionCrossRef.getByTransactionId(id)
+        val list = mutableListOf<Budget>()
+        ref.forEach {
+            val bud = budgetDAO.getById(it.budgetId)?.toBudget()
+            if (bud != null) {
+                populateBudgetWithCategoryDetails(bud)
+                list.add(bud)
+            }
+        }
+        return list
+    }
+
+    override fun getBudgetsForDate(date: Date): List<Budget> {
+        val budgets = budgetDAO.getBudgetsForDate(date).map { it.toBudget() }
+        for (b in budgets) {
+            populateBudgetWithCategoryDetails(budget = b)
+        }
+        return budgets
     }
 
     private fun populateBudgetWithCategoryDetails(budget: Budget) {

@@ -7,6 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.example.financetracker.data.models.TransactionEntity
 import com.example.financetracker.data.models.local.BudgetEntity
+import com.example.financetracker.data.models.local.BudgetTransactionCrossRef
 import com.example.financetracker.data.models.local.CategoryEntity
 import com.example.financetracker.data.models.local.CategoryWiseBudgetEntity
 import com.example.financetracker.data.models.local.PaymentSourceEntity
@@ -14,6 +15,7 @@ import com.example.financetracker.data.models.local.TagEntity
 import com.example.financetracker.data.models.local.dao.BudgetDAO
 import com.example.financetracker.data.models.local.dao.CategoryDAO
 import com.example.financetracker.data.models.local.dao.CategoryWiseBudgetDAO
+import com.example.financetracker.data.models.local.dao.TransactionBudgetCrossDAO
 import com.example.financetracker.data.models.local.dao.TransactionsDAO
 
 @Database(
@@ -23,10 +25,11 @@ import com.example.financetracker.data.models.local.dao.TransactionsDAO
         CategoryEntity::class,
         PaymentSourceEntity::class,
         TagEntity::class,
-        CategoryWiseBudgetEntity::class
+        CategoryWiseBudgetEntity::class,
+        BudgetTransactionCrossRef::class,
     ),
     exportSchema = true,
-    version = 3,
+    version = 1,
 )
 @TypeConverters(DatabaseTypeConverters::class)
 abstract class TransactionDatabase : RoomDatabase() {
@@ -37,6 +40,8 @@ abstract class TransactionDatabase : RoomDatabase() {
     abstract fun budgetDao(): BudgetDAO
 
     abstract fun categoryBudgetDao(): CategoryWiseBudgetDAO
+
+    abstract fun transactionBudgetCrossDao(): TransactionBudgetCrossDAO
 
     companion object {
         @Volatile

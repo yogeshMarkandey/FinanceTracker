@@ -131,6 +131,9 @@ fun EditBudgetScreen(
     }
 
     LaunchedEffect(key1 = showErrorToast) {
+        if(showErrorToast <= 0){
+            return@LaunchedEffect
+        }
         Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
     }
 

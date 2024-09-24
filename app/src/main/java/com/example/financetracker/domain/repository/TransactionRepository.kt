@@ -1,6 +1,7 @@
 package com.example.financetracker.domain.repository
 
 import com.example.financetracker.data.models.local.TransactionModel
+import com.example.financetracker.domain.model.local.Budget
 import com.example.financetracker.domain.model.local.Category
 import com.example.financetracker.domain.model.local.Transaction
 import kotlinx.coroutines.flow.Flow

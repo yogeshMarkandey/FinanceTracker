@@ -14,11 +14,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
@@ -56,14 +58,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.financetracker.data.models.local.PaymentType
+import com.example.financetracker.domain.model.local.Budget
 import com.example.financetracker.domain.model.local.Category
 import com.example.financetracker.domain.model.local.StandardColor.Companion.toColor
 import com.example.financetracker.presentation.common.IconHelper
@@ -71,6 +76,7 @@ import com.example.financetracker.presentation.screens.home.states.EditTransacti
 import com.example.financetracker.presentation.screens.navigation.Routes
 import com.example.financetracker.presentation.ui.theme.FinanceTrackerTheme
 import com.example.financetracker.presentation.viewmodels.EditTransactionViewModel
+import com.example.financetracker.presentation.widgets.BudgetSelectionSheetContent
 import com.example.financetracker.presentation.widgets.CategoryIconCompose
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -99,6 +105,9 @@ fun EditTransactionScreen(
     val amountText by remember { viewModel.amountText }
     val showAmountError by remember { viewModel.showAmountTextError }
     val notesText by remember { viewModel.noteText }
+    val availableBudgets by remember { viewModel.availableBudget }
+    val selectedBudget by remember { viewModel.selectedBudget }
+    val showErrorToast by remember { viewModel.showToastError }
 
     val selectedPaymentType by remember {
         viewModel.selectedPaymentType
@@ -135,13 +144,26 @@ fun EditTransactionScreen(
 
     val categorySheetState =
         rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
+
+    val budgetSheetState =
+        rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
+
     val coroutineScope = rememberCoroutineScope()
 
     var categoryBottomSheetEditMode by remember { mutableStateOf(false) }
 
+    LaunchedEffect(key1 = showErrorToast) {
+        if (showErrorToast <= 0) {
+            return@LaunchedEffect
+        }
+        Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+    }
+
     LaunchedEffect(key1 = Unit) {
         if (transactionId != null && transactionId > 0) {
             viewModel.loadTransactionById(transactionId)
+        } else {
+            viewModel.initNewTransactionCreation()
         }
     }
 
@@ -174,76 +196,100 @@ fun EditTransactionScreen(
     }
 
     ModalBottomSheetLayout(
-        sheetState = categorySheetState,
+        sheetState = budgetSheetState,
         sheetContent = {
-            CategoryBottomSheetContent(
-                allCategory = allCategories,
-                selectedCategory = selectedCategory,
-                onItemSelected = { category ->
-                    if (categoryBottomSheetEditMode) {
-                        val route = Routes.routeEditCategory(categoryId = category.id)
-                        navController.navigate(
-                            route = route
-                        )
-
-                        return@CategoryBottomSheetContent
-                    }
-
-                    viewModel.updateSelectedCategory(category)
+            BudgetSelectionSheetContent(
+                onBudgetSelected = {
+                    viewModel.updateSelectedBudget(it)
                     coroutineScope.launch {
-                        if (categorySheetState.isVisible) {
-                            categorySheetState.hide()
+                        if (budgetSheetState.isVisible) {
+                            budgetSheetState.hide()
                         }
                     }
                 },
-                onAddNewCategory = {
-                    val route = Routes.routeEditCategory()
-                    navController.navigate(
-                        route = route
-                    )
-                },
-                editMode = categoryBottomSheetEditMode,
-                onToggleMode = {
-                    categoryBottomSheetEditMode = it
-                }
+                availableBudgets = availableBudgets,
+                prevSelectedBudgets = selectedBudget
             )
         },
     ) {
-        EditTransactionScreenContent(
-            modifier = modifier,
-            navController = navController,
-            onClickDate = {
-                datePickerDialog.show()
+        ModalBottomSheetLayout(
+            sheetState = categorySheetState,
+            sheetContent = {
+                CategoryBottomSheetContent(
+                    allCategory = allCategories,
+                    selectedCategory = selectedCategory,
+                    onItemSelected = { category ->
+                        if (categoryBottomSheetEditMode) {
+                            val route = Routes.routeEditCategory(categoryId = category.id)
+                            navController.navigate(
+                                route = route
+                            )
+
+                            return@CategoryBottomSheetContent
+                        }
+
+                        viewModel.updateSelectedCategory(category)
+                        coroutineScope.launch {
+                            if (categorySheetState.isVisible) {
+                                categorySheetState.hide()
+                            }
+                        }
+                    },
+                    onAddNewCategory = {
+                        val route = Routes.routeEditCategory()
+                        navController.navigate(
+                            route = route
+                        )
+                    },
+                    editMode = categoryBottomSheetEditMode,
+                    onToggleMode = {
+                        categoryBottomSheetEditMode = it
+                    }
+                )
             },
-            selectedDate = selectedDate,
-            onClickTime = {
-                timePickerDialog.show()
-            },
-            selectedTime = selectedTime,
-            onCategoryIconClick = {
-                coroutineScope.launch {
-                    categorySheetState.show()
-                }
-            },
-            selectedCategory = selectedCategory,
-            amountText = amountText,
-            notesText = notesText,
-            onNotesUpdated = {
-                viewModel.updateNoteText(it)
-            },
-            onAmountUpdated = {
-                viewModel.updateAmountText(it)
-            },
-            selectedPaymentType = selectedPaymentType,
-            onSelectPaymentType = {
-                viewModel.updateSelectedPaymentType(it)
-            },
-            showAmountError = showAmountError,
-            onSaveTransactionClick = {
-                viewModel.saveTransaction()
-            },
-            isEditMode = isEditMode
-        )
+        ) {
+            EditTransactionScreenContent(
+                modifier = modifier,
+                navController = navController,
+                onClickDate = {
+                    datePickerDialog.show()
+                },
+                selectedDate = selectedDate,
+                onClickTime = {
+                    timePickerDialog.show()
+                },
+                selectedTime = selectedTime,
+                onCategoryIconClick = {
+                    coroutineScope.launch {
+                        categorySheetState.show()
+                    }
+                },
+                selectedCategory = selectedCategory,
+                amountText = amountText,
+                notesText = notesText,
+                onNotesUpdated = {
+                    viewModel.updateNoteText(it)
+                },
+                onAmountUpdated = {
+                    viewModel.updateAmountText(it)
+                },
+                selectedPaymentType = selectedPaymentType,
+                onSelectPaymentType = {
+                    viewModel.updateSelectedPaymentType(it)
+                },
+                showAmountError = showAmountError,
+                onSaveTransactionClick = {
+                    viewModel.saveTransaction()
+                },
+                isEditMode = isEditMode,
+                onSelectBudgetClicked = {
+                    coroutineScope.launch {
+                        budgetSheetState.show()
+                    }
+                },
+                selectedBudgets = selectedBudget,
+            )
+        }
     }
 }
 
@@ -266,6 +312,8 @@ private fun EditTransactionScreenContent(
     showAmountError: Boolean,
     onSaveTransactionClick: () -> Unit,
     isEditMode: Boolean,
+    onSelectBudgetClicked: () -> Unit,
+    selectedBudgets: List<Budget>,
 ) {
     Scaffold(
         modifier = modifier,
@@ -367,7 +415,6 @@ private fun EditTransactionScreenContent(
                     )
                 }
 
-                // OutlinedTextField
                 OutlinedTextField(
                     value = notesText,
                     onValueChange = { onNotesUpdated(it) },
@@ -402,6 +449,74 @@ private fun EditTransactionScreenContent(
 
                     ) {
                         Text(text = v.name, textAlign = TextAlign.Center)
+                    }
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "Selected Budget",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+
+                IconButton(onClick = { onSelectBudgetClicked() }) {
+                    Icon(Icons.Default.Edit, contentDescription = "Edit Selected Budget")
+                }
+            }
+
+            if (selectedBudgets.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 12.dp)
+                        .fillMaxWidth()
+                        .background(
+                            Color.Gray.copy(alpha = .25f),
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        .clickable { onSelectBudgetClicked() }
+                        .padding(vertical = 12.dp, horizontal = 12.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No Budget selected yet.\n Click to add.",
+                        color = Color.Red,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            } else {
+                selectedBudgets.forEach {
+                    Row(
+                        modifier = Modifier
+                            .padding(vertical = 4.dp, horizontal = 12.dp)
+                            .fillMaxWidth()
+                            .background(
+                                color = Color.Gray.copy(alpha = 0.25f),
+                                shape = RoundedCornerShape(6.dp)
+                            )
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column {
+                            Text(
+                                text = it.title,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 14.sp
+                            )
+                            Box(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "${it.getReadableStartDate()}-${it.getReadableEndDate()}",
+                                fontWeight = FontWeight.Light,
+                                fontSize = 12.sp
+                            )
+                        }
                     }
                 }
             }
@@ -509,7 +624,7 @@ private fun CategoryBottomSheetContentPreview() {
 @Composable
 private fun EditScreenPreview() {
     val navController = rememberNavController()
-    FinanceTrackerTheme(darkTheme = false, dynamicColor = true) {
+    FinanceTrackerTheme {
         EditTransactionScreenContent(
             modifier = Modifier,
             navController = navController,
@@ -528,6 +643,8 @@ private fun EditScreenPreview() {
             showAmountError = true,
             onSaveTransactionClick = {},
             isEditMode = false,
+            selectedBudgets = emptyList(), // listOf(Budget.getDefault(), Budget.getDefault()),
+            onSelectBudgetClicked = {}
         )
     }
 }
