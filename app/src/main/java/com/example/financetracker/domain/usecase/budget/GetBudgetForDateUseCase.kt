@@ -5,4 +5,5 @@ import java.util.Date
 
 interface GetBudgetForDateUseCase {
     fun execute(date: Date): List<Budget>
+    fun execute(start: Date, end: Date): List<Budget>
 }

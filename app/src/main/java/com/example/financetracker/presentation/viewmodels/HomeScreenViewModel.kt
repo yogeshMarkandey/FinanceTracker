@@ -11,6 +11,7 @@ import com.example.financetracker.domain.model.local.Transaction
 import com.example.financetracker.domain.usecase.budget.GetBudgetByStartDateUseCase
 import com.example.financetracker.domain.usecase.category.GetCategoryByIdUseCase
 import com.example.financetracker.domain.usecase.transaction.GetAllTransactionBetweenUseCase
+import com.example.financetracker.presentation.utils.DateTimeHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -59,12 +60,11 @@ class HomeScreenViewModel @Inject constructor(
 
     fun loadBudgetByStartDate() {
         CoroutineScope(Dispatchers.IO).launch {
+            val pair = DateTimeHelper.getMonthStartAndEnd()
             val start = Calendar.getInstance()
             val end = Calendar.getInstance()
-            start.set(2024, 8, 1, 0,0, 0)
-            end.set(2024, 9, 30, 23,59, 59)
-            start.set(Calendar.MILLISECOND, 0)
-            end.set(Calendar.MILLISECOND, 59)
+            start.time = pair.first
+            end.time = pair.second
 
             getBudgetByStartDateUseCase.execute(start.time, end.time).collect {
                 _activeBudgets.value = it

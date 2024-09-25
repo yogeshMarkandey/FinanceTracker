@@ -41,6 +41,7 @@ import androidx.navigation.NavController
 import com.example.financetracker.domain.model.CategoryAnalysisResult
 import com.example.financetracker.domain.model.local.Budget
 import com.example.financetracker.presentation.ui.theme.FinanceTrackerTheme
+import com.example.financetracker.presentation.utils.DateTimeHelper
 import com.example.financetracker.presentation.viewmodels.AnalysisScreenViewModel
 import com.example.financetracker.presentation.widgets.budget.ActiveBudgetItemContent
 import com.example.financetracker.presentation.widgets.category.CategoryAnalysisContent
@@ -99,6 +100,9 @@ fun AnalysisScreen(
         },
         activeBudgets = activeBudget,
         spendingCatAnalysis = spendingCatAnalysisResult,
+        onUpdateDuration = {
+            viewModel.updateAnalysisDuration(it)
+        }
     )
 }
 
@@ -114,6 +118,7 @@ private fun AnalysisScreenContent(
     onSelectMode: (AnalysisScreenModes) -> Unit,
     activeBudgets: List<Budget>,
     spendingCatAnalysis: List<CategoryAnalysisResult>,
+    onUpdateDuration: (Int) -> Unit,
 ) {
 
     Scaffold(modifier = modifier.fillMaxSize()) { paddingValues ->
@@ -187,11 +192,29 @@ private fun AnalysisScreenContent(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    IconButton(onClick = { /*TODO*/ }) {
+                    IconButton(onClick = { onUpdateDuration(-1) }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back Arrow")
                     }
-                    Text(text = monthName, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                    IconButton(onClick = { /*TODO*/ }) {
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = monthName,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
+                        Box(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "${DateTimeHelper.format(startCalendar.time, "dd MMM, YY")} -" +
+                                    " ${DateTimeHelper.format(endCalendar.time, "dd MMM, YY")}",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Normal,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                    IconButton(onClick = { onUpdateDuration(1) }) {
                         Icon(Icons.Default.ArrowForward, contentDescription = "Forward Arrow")
                     }
                 }
@@ -281,7 +304,8 @@ private fun Preview() {
             modes = AnalysisScreenModes.entries.toList(),
             onSelectMode = {},
             activeBudgets = listOf(Budget.getDefault()),
-            spendingCatAnalysis = CategoryAnalysisResult.getDefaultList()
+            spendingCatAnalysis = CategoryAnalysisResult.getDefaultList(),
+            onUpdateDuration = {}
         )
     }
 }

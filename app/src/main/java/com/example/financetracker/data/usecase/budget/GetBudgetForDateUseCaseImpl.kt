@@ -12,4 +12,8 @@ class GetBudgetForDateUseCaseImpl @Inject constructor(
     override fun execute(date: Date): List<Budget> {
         return budgetRepository.getBudgetsForDate(date)
     }
+
+    override fun execute(start: Date, end: Date): List<Budget> {
+        return budgetRepository.getBudgetsForDate(start, end)
+    }
 }

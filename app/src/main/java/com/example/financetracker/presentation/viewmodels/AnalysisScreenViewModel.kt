@@ -9,10 +9,11 @@ import com.example.financetracker.domain.model.CategoryAnalysisResult
 import com.example.financetracker.domain.model.local.Budget
 import com.example.financetracker.domain.model.local.Transaction
 import com.example.financetracker.domain.usecase.analysis.GetCategoryAnalysisUseCase
-import com.example.financetracker.domain.usecase.budget.GetBudgetBetweenUseCase
+import com.example.financetracker.domain.usecase.budget.GetBudgetForDateUseCase
 import com.example.financetracker.domain.usecase.transaction.GetAllTransactionBetweenUseCase
 import com.example.financetracker.presentation.screens.analysis.AnalysisScreenModes
 import com.example.financetracker.presentation.screens.analysis.AnalysisScreenState
+import com.example.financetracker.presentation.utils.DateTimeHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -23,10 +24,11 @@ import javax.inject.Inject
 @HiltViewModel
 class AnalysisScreenViewModel @Inject constructor(
     private val getAllTransactionBetweenUseCase: GetAllTransactionBetweenUseCase,
-    private val getBudgetBetweenUseCase: GetBudgetBetweenUseCase,
+    private val getBudgetForDateUseCase: GetBudgetForDateUseCase,
     private val getCategoryAnalysisUseCase: GetCategoryAnalysisUseCase,
 ) : ViewModel() {
     private val TAG = this::class.java.name
+    private val currCalendar = mutableStateOf(Calendar.getInstance())
     val transactions = mutableStateListOf<Transaction>()
     val startCalender = mutableStateOf(Calendar.getInstance())
     val endCalendar = mutableStateOf(Calendar.getInstance())
@@ -38,32 +40,28 @@ class AnalysisScreenViewModel @Inject constructor(
     val showToastState = mutableIntStateOf(0)
     val categoryAnalysisResults = mutableStateListOf<CategoryAnalysisResult>()
 
+    private var initialized = false
     fun initViewModel() {
+        if (initialized) {
+            return
+        }
+        initialized = true
         populateStateVariables()
     }
 
     private fun populateStateVariables() {
+        val pair = DateTimeHelper.getMonthStartAndEnd()
         val start = Calendar.getInstance()
-        start.set(start.get(Calendar.YEAR), start.get(Calendar.MONTH), 1)
-        start.set(Calendar.HOUR_OF_DAY, 0)
-
         val end = Calendar.getInstance()
-        end.set(start.get(Calendar.YEAR), start.get(Calendar.MONTH), 1)
-        val lastDay = end.getActualMaximum(Calendar.DAY_OF_MONTH)
-        end.set(Calendar.DAY_OF_MONTH, lastDay)
+        start.time = pair.first
+        end.time = pair.second
 
         setStartAndEndDate(start, end)
     }
 
     private fun setStartAndEndDate(start: Calendar, end: Calendar) {
-        start.set(Calendar.DAY_OF_MONTH, 1)
-        start.set(Calendar.MINUTE, 0)
-        start.set(Calendar.SECOND, 0)
-        start.set(Calendar.MILLISECOND, 0)
-        end.set(Calendar.HOUR_OF_DAY, 23)
-        end.set(Calendar.MINUTE, 59)
-        end.set(Calendar.SECOND, 59)
-        end.set(Calendar.MILLISECOND, 59)
+        DateTimeHelper.resetStartTime(start)
+        DateTimeHelper.resetEndTime(end)
         startCalender.value = start
         endCalendar.value = end
         loadData()
@@ -76,7 +74,7 @@ class AnalysisScreenViewModel @Inject constructor(
             try {
                 val start = startCalender.value.time
                 val end = endCalendar.value.time
-                val buds = getBudgetBetweenUseCase.execute(start = start, end = end)
+                val buds = getBudgetForDateUseCase.execute(start = start, end = end)
                 updateActiveBudgetList(buds)
 
                 val catAnalysis = getCategoryAnalysisUseCase.execute(start = start, end = end)
@@ -112,6 +110,42 @@ class AnalysisScreenViewModel @Inject constructor(
 
     fun updateSelectedAnalysisMode(modes: AnalysisScreenModes) {
         selectedMode.value = modes
+        currCalendar.value = Calendar.getInstance()
+        updateAnalysisDuration(0)
     }
 
+
+    fun updateAnalysisDuration(offset: Int) {
+        val calendar = Calendar.getInstance()
+        calendar.time = currCalendar.value.time
+
+        val pair = when (selectedMode.value) {
+            AnalysisScreenModes.Month -> {
+                DateTimeHelper.getMonthStartAndEnd(calendar.time, offset)
+            }
+
+            AnalysisScreenModes.Week -> {
+                DateTimeHelper.getWeekStartAndEnd(calendar.time, offset)
+            }
+
+            AnalysisScreenModes.Day -> {
+                DateTimeHelper.getDayStartAndEnd(calendar.time, offset)
+            }
+
+            AnalysisScreenModes.Year -> {
+                DateTimeHelper.getYearStartAndEnd(calendar.time, offset)
+            }
+
+            else -> {
+                DateTimeHelper.getMonthStartAndEnd()
+            }
+        }
+        calendar.time = pair.first
+        currCalendar.value = calendar
+        val start = Calendar.getInstance()
+        start.time = pair.first
+        val end = Calendar.getInstance()
+        end.time = pair.second
+        setStartAndEndDate(start, end)
+    }
 }

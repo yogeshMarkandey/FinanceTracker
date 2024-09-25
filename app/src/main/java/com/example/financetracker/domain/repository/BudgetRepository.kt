@@ -10,6 +10,7 @@ interface BudgetRepository {
     suspend fun getBudgetBetween(start: Date, end: Date): List<Budget>
     fun getBudgetsForTransaction(id: Int): List<Budget>
     fun getBudgetsForDate(date: Date): List<Budget>
+    fun getBudgetsForDate(start: Date, end: Date): List<Budget>
     fun saveBudget(budget: Budget)
     fun updateBudget(budget: Budget)
 }

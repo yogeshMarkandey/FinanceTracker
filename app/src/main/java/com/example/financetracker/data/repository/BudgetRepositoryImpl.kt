@@ -75,6 +75,14 @@ class BudgetRepositoryImpl @Inject constructor(
         return budgets
     }
 
+    override fun getBudgetsForDate(start: Date, end: Date): List<Budget> {
+        val budgets = budgetDAO.getBudgetsForDate(start, end).map { it.toBudget() }
+        for (b in budgets) {
+            populateBudgetWithCategoryDetails(budget = b)
+        }
+        return budgets
+    }
+
     private fun populateBudgetWithCategoryDetails(budget: Budget) {
         val catBudsByBudgetModel = categoryBudgetDAO.getAllBy(budget.categoryWiseBudgetIds)
         val allCategories = categoryDAO.getAllCategories()
