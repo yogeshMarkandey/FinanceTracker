@@ -183,7 +183,7 @@ fun HomeScreenContent(
                         val budget = activeBudgetsThisMonth[index]
 
                         ActiveBudgetItemContent(
-                            modifier = Modifier,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                             budget = budget,
                             onBudgetClicked = {
                                 onBudgetClicked(budget.id)

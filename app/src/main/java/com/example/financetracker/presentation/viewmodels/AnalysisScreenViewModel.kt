@@ -5,8 +5,10 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import com.example.financetracker.domain.model.CategoryAnalysisResult
 import com.example.financetracker.domain.model.local.Budget
 import com.example.financetracker.domain.model.local.Transaction
+import com.example.financetracker.domain.usecase.analysis.GetCategoryAnalysisUseCase
 import com.example.financetracker.domain.usecase.budget.GetBudgetBetweenUseCase
 import com.example.financetracker.domain.usecase.transaction.GetAllTransactionBetweenUseCase
 import com.example.financetracker.presentation.screens.analysis.AnalysisScreenModes
@@ -22,6 +24,7 @@ import javax.inject.Inject
 class AnalysisScreenViewModel @Inject constructor(
     private val getAllTransactionBetweenUseCase: GetAllTransactionBetweenUseCase,
     private val getBudgetBetweenUseCase: GetBudgetBetweenUseCase,
+    private val getCategoryAnalysisUseCase: GetCategoryAnalysisUseCase,
 ) : ViewModel() {
     private val TAG = this::class.java.name
     val transactions = mutableStateListOf<Transaction>()
@@ -33,6 +36,7 @@ class AnalysisScreenViewModel @Inject constructor(
     val screenState = mutableStateOf(AnalysisScreenState.INITIAL)
     val errorMessage = mutableStateOf("")
     val showToastState = mutableIntStateOf(0)
+    val categoryAnalysisResults = mutableStateListOf<CategoryAnalysisResult>()
 
     fun initViewModel() {
         populateStateVariables()
@@ -41,6 +45,7 @@ class AnalysisScreenViewModel @Inject constructor(
     private fun populateStateVariables() {
         val start = Calendar.getInstance()
         start.set(start.get(Calendar.YEAR), start.get(Calendar.MONTH), 1)
+        start.set(Calendar.HOUR_OF_DAY, 0)
 
         val end = Calendar.getInstance()
         end.set(start.get(Calendar.YEAR), start.get(Calendar.MONTH), 1)
@@ -51,6 +56,14 @@ class AnalysisScreenViewModel @Inject constructor(
     }
 
     private fun setStartAndEndDate(start: Calendar, end: Calendar) {
+        start.set(Calendar.DAY_OF_MONTH, 1)
+        start.set(Calendar.MINUTE, 0)
+        start.set(Calendar.SECOND, 0)
+        start.set(Calendar.MILLISECOND, 0)
+        end.set(Calendar.HOUR_OF_DAY, 23)
+        end.set(Calendar.MINUTE, 59)
+        end.set(Calendar.SECOND, 59)
+        end.set(Calendar.MILLISECOND, 59)
         startCalender.value = start
         endCalendar.value = end
         loadData()
@@ -61,11 +74,14 @@ class AnalysisScreenViewModel @Inject constructor(
             setState(AnalysisScreenState.LOADING)
 
             try {
-                val buds = getBudgetBetweenUseCase.execute(
-                    start = startCalender.value.time,
-                    end = endCalendar.value.time
-                )
+                val start = startCalender.value.time
+                val end = endCalendar.value.time
+                val buds = getBudgetBetweenUseCase.execute(start = start, end = end)
                 updateActiveBudgetList(buds)
+
+                val catAnalysis = getCategoryAnalysisUseCase.execute(start = start, end = end)
+                updateCatAnalysisResults(catAnalysis)
+
                 setState(AnalysisScreenState.LOAD_DATA_SUCCESS)
             } catch (e: Exception) {
                 showError(message = e.message)
@@ -73,6 +89,11 @@ class AnalysisScreenViewModel @Inject constructor(
                 Log.e(TAG, "loadData: ", e)
             }
         }
+    }
+
+    private fun updateCatAnalysisResults(catAnalysis: List<CategoryAnalysisResult>) {
+        categoryAnalysisResults.clear()
+        categoryAnalysisResults.addAll(catAnalysis)
     }
 
     private fun showError(message: String?) {

@@ -63,6 +63,7 @@ fun AnalysisScreen(
     val showToastState by remember { viewModel.showToastState }
     val screenState by remember { viewModel.screenState }
     val activeBudget = remember { viewModel.activeBudgets }
+    val spendingCatAnalysisResult = remember { viewModel.categoryAnalysisResults }
 
     LaunchedEffect(key1 = Unit) {
         viewModel.initViewModel()
@@ -96,7 +97,8 @@ fun AnalysisScreen(
         onSelectMode = {
             viewModel.updateSelectedAnalysisMode(it)
         },
-        activeBudgets = activeBudget
+        activeBudgets = activeBudget,
+        spendingCatAnalysis = spendingCatAnalysisResult,
     )
 }
 
@@ -111,9 +113,8 @@ private fun AnalysisScreenContent(
     selectedMode: AnalysisScreenModes,
     onSelectMode: (AnalysisScreenModes) -> Unit,
     activeBudgets: List<Budget>,
-
-    ) {
-    val spendingCatAnalysis = remember { CategoryAnalysisResult.getDefaultList() }
+    spendingCatAnalysis: List<CategoryAnalysisResult>,
+) {
 
     Scaffold(modifier = modifier.fillMaxSize()) { paddingValues ->
         LazyColumn(modifier = Modifier.padding(paddingValues)) {
@@ -279,7 +280,8 @@ private fun Preview() {
             selectedMode = AnalysisScreenModes.Month,
             modes = AnalysisScreenModes.entries.toList(),
             onSelectMode = {},
-            activeBudgets = listOf(Budget.getDefault())
+            activeBudgets = listOf(Budget.getDefault()),
+            spendingCatAnalysis = CategoryAnalysisResult.getDefaultList()
         )
     }
 }

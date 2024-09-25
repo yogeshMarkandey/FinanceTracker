@@ -22,6 +22,7 @@ import org.apache.poi.openxml4j.opc.OPCPackage
 import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.io.InputStream
+import java.util.Date
 import javax.inject.Inject
 
 
@@ -83,6 +84,14 @@ class TransactionRepositoryImpl @Inject constructor(
 
     override fun getAllTransaction(): Flow<List<Transaction>> {
         return transactionsDAO.getAllTransaction().map { list ->
+            list.map {
+                it.toTransaction()
+            }
+        }
+    }
+
+    override fun getAllBetween(start: Date, end: Date): Flow<List<Transaction>> {
+        return transactionsDAO.getBetween(start, end).map { list ->
             list.map {
                 it.toTransaction()
             }

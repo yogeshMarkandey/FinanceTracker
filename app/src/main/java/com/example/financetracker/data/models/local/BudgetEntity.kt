@@ -12,5 +12,6 @@ data class BudgetEntity(
     val title: String,
     val budgetAmount: Float,
     val totalConsumed: Float,
+    val budgetType: BudgetType,
     val categoryWiseBudgetIds: ArrayList<String>
 )

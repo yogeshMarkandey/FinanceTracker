@@ -61,8 +61,10 @@ class HomeScreenViewModel @Inject constructor(
         CoroutineScope(Dispatchers.IO).launch {
             val start = Calendar.getInstance()
             val end = Calendar.getInstance()
-            start.set(2024, 8, 1)
-            end.set(2024, 8, 30)
+            start.set(2024, 8, 1, 0,0, 0)
+            end.set(2024, 9, 30, 23,59, 59)
+            start.set(Calendar.MILLISECOND, 0)
+            end.set(Calendar.MILLISECOND, 59)
 
             getBudgetByStartDateUseCase.execute(start.time, end.time).collect {
                 _activeBudgets.value = it

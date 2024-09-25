@@ -29,7 +29,7 @@ import com.example.financetracker.data.models.local.dao.TransactionsDAO
         BudgetTransactionCrossRef::class,
     ),
     exportSchema = true,
-    version = 1,
+    version = 2,
 )
 @TypeConverters(DatabaseTypeConverters::class)
 abstract class TransactionDatabase : RoomDatabase() {

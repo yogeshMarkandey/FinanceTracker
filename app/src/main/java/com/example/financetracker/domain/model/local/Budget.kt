@@ -2,6 +2,7 @@ package com.example.financetracker.domain.model.local
 
 import android.util.Log
 import com.example.financetracker.data.models.local.BudgetEntity
+import com.example.financetracker.data.models.local.BudgetType
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -14,6 +15,7 @@ data class Budget(
     var budgetAmount: Float,
     var totalConsumed: Float,
     var categoryWiseBudgetIds: ArrayList<String>,
+    var budgetType: BudgetType,
     var categoryBudgets: MutableList<CategoryBudget> = mutableListOf()
 ) {
     companion object {
@@ -25,7 +27,8 @@ data class Budget(
                 title = title,
                 budgetAmount = budgetAmount,
                 totalConsumed = totalConsumed,
-                categoryWiseBudgetIds = categoryWiseBudgetIds
+                categoryWiseBudgetIds = categoryWiseBudgetIds,
+                budgetType = budgetType,
             )
         }
 
@@ -37,7 +40,8 @@ data class Budget(
                 title = title,
                 budgetAmount = budgetAmount,
                 totalConsumed = totalConsumed,
-                categoryWiseBudgetIds = categoryWiseBudgetIds
+                categoryWiseBudgetIds = categoryWiseBudgetIds,
+                budgetType = budgetType,
             )
         }
 
@@ -48,7 +52,8 @@ data class Budget(
             title = "Monthly Budget",
             budgetAmount = 2000f,
             totalConsumed = 100f,
-            categoryWiseBudgetIds = ArrayList()
+            categoryWiseBudgetIds = ArrayList(),
+            budgetType = BudgetType.MONTHLY
         )
 
         fun newInstance(): Budget {
@@ -62,7 +67,8 @@ data class Budget(
                 title = "${format.format(startDate)} Budget",
                 budgetAmount = 0f,
                 totalConsumed = 0f,
-                categoryWiseBudgetIds = ArrayList()
+                categoryWiseBudgetIds = ArrayList(),
+                budgetType = BudgetType.NA
             )
         }
     }

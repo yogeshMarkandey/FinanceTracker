@@ -9,6 +9,7 @@ import com.example.financetracker.data.models.local.dao.TransactionBudgetCrossDA
 import com.example.financetracker.data.models.local.dao.TransactionsDAO
 import com.example.financetracker.data.repository.BudgetRepositoryImpl
 import com.example.financetracker.data.repository.TransactionRepositoryImpl
+import com.example.financetracker.data.usecase.analysis.GetCategoryAnalysisUseCaseImpl
 import com.example.financetracker.data.usecase.budget.GetBudgetBetweenUseCaseImpl
 import com.example.financetracker.data.usecase.budget.GetBudgetByIdUseCaseImpl
 import com.example.financetracker.data.usecase.budget.GetBudgetByStartDateUseCaseImpl
@@ -28,6 +29,7 @@ import com.example.financetracker.data.usecase.transaction.GetTransactionByIdUse
 import com.example.financetracker.data.usecase.transaction.UpdateTransactionUseCaseImpl
 import com.example.financetracker.domain.repository.BudgetRepository
 import com.example.financetracker.domain.repository.TransactionRepository
+import com.example.financetracker.domain.usecase.analysis.GetCategoryAnalysisUseCase
 import com.example.financetracker.domain.usecase.budget.GetBudgetBetweenUseCase
 import com.example.financetracker.domain.usecase.budget.GetBudgetByIdUseCase
 import com.example.financetracker.domain.usecase.budget.GetBudgetByStartDateUseCase
@@ -205,5 +207,13 @@ object AppModule {
     @Provides
     fun getGetBudgetBetweenUC(repository: BudgetRepository): GetBudgetBetweenUseCase {
         return GetBudgetBetweenUseCaseImpl(repository)
+    }
+
+    @Provides
+    fun getGetCategoryAnalysisUC(
+        budgetRepository: BudgetRepository,
+        transactionRepository: TransactionRepository,
+    ): GetCategoryAnalysisUseCase {
+        return GetCategoryAnalysisUseCaseImpl(budgetRepository, transactionRepository)
     }
 }

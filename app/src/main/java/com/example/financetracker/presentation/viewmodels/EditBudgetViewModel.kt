@@ -1,11 +1,11 @@
 package com.example.financetracker.presentation.viewmodels
 
-import android.icu.util.Calendar
 import android.util.Log
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import com.example.financetracker.data.models.local.BudgetType
 import com.example.financetracker.data.utils.CustomException
 import com.example.financetracker.domain.model.local.Budget
 import com.example.financetracker.domain.model.local.Category
@@ -20,6 +20,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Locale
 import javax.inject.Inject
 
@@ -46,6 +47,7 @@ class EditBudgetViewModel @Inject constructor(
     val startCalender = mutableStateOf(Calendar.getInstance())
     val endCalender = mutableStateOf(Calendar.getInstance())
     val balanceAmount = mutableStateOf(0f)
+    val selectedBudgetType = mutableStateOf(BudgetType.NA)
 
     fun saveBudget() {
         if (budgetAmountError.value.isNotBlank()) {
@@ -66,6 +68,7 @@ class EditBudgetViewModel @Inject constructor(
                     categoryWiseBudgetIds = arrayListOf(),
                     categoryBudgets = categoryBudgets,
                     totalConsumed = 0f,
+                    budgetType = selectedBudgetType.value
                 )
                 budget.categoryBudgets.forEach {
                     budget.categoryWiseBudgetIds.add(it.id)
@@ -146,18 +149,36 @@ class EditBudgetViewModel @Inject constructor(
         budgetTitle.value = budget.title
         val startCalender = Calendar.getInstance()
         startCalender.time = budget.startDate
-
         val endCalender = Calendar.getInstance()
         endCalender.time = budget.endDate
-        this.startCalender.value = startCalender
-        this.endCalender.value = endCalender
+        setStartCalendar(startCalender)
+        setEndCalender(endCalender)
         categoryBudgets.addAll(budget.categoryBudgets.toMutableList())
         var maxBudget = budgetAmount.value.toFloat()
         categoryBudgets.forEach {
             maxBudget -= it.amount
         }
         balanceAmount.value = maxBudget
+        selectedBudgetType.value = budget.budgetType
 
+    }
+
+
+    private fun setStartCalendar(startCalender: Calendar) {
+        startCalender.set(Calendar.HOUR_OF_DAY, 0)
+        startCalender.set(Calendar.MINUTE, 0)
+        startCalender.set(Calendar.SECOND, 0)
+        startCalender.set(Calendar.MILLISECOND, 0)
+        this.startCalender.value = startCalender
+
+    }
+
+    private fun setEndCalender(endCalender: Calendar) {
+        endCalender.set(Calendar.HOUR_OF_DAY, 23)
+        endCalender.set(Calendar.MINUTE, 59)
+        endCalender.set(Calendar.SECOND, 59)
+        endCalender.set(Calendar.MILLISECOND, 59)
+        this.endCalender.value = endCalender
     }
 
     fun getNewBudgetInstance() {
@@ -206,7 +227,7 @@ class EditBudgetViewModel @Inject constructor(
 
         budgetAmount.value = newAmount
 
-        if (newAmount.isBlank()){
+        if (newAmount.isBlank()) {
             newAmount = "0"
         }
 
@@ -265,22 +286,30 @@ class EditBudgetViewModel @Inject constructor(
         budgetTitle.value = value
     }
 
-    fun setStartDate(day: Int, month: Int, year: Int) {
-        val newCalendar = Calendar.getInstance()
-        newCalendar.set(
-            year,
-            month,
-            day,
-        )
-        startCalender.value = newCalendar
+    fun updateBudgetType(budgetType: BudgetType) {
+        selectedBudgetType.value = budgetType
     }
 
-    fun setEndDate(day: Int, month: Int, year: Int) {
+    fun setStartCalendar(day: Int, month: Int, year: Int) {
         val newCalendar = Calendar.getInstance()
         newCalendar.set(
             year,
             month,
             day,
+            0,
+            0
+        )
+        setStartCalendar(newCalendar)
+    }
+
+    fun setEndCalender(day: Int, month: Int, year: Int) {
+        val newCalendar = Calendar.getInstance()
+        newCalendar.set(
+            year,
+            month,
+            day,
+            0,
+            0
         )
 
         if (newCalendar.time.before(startCalender.value.time)) {
@@ -288,6 +317,6 @@ class EditBudgetViewModel @Inject constructor(
             return
         }
 
-        endCalender.value = newCalendar
+        setEndCalender(newCalendar)
     }
 }

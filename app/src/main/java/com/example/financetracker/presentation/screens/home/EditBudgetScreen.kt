@@ -4,6 +4,7 @@ import android.app.DatePickerDialog
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -55,6 +56,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.financetracker.data.models.local.BudgetType
 import com.example.financetracker.domain.model.local.CategoryBudget
 import com.example.financetracker.presentation.screens.home.states.EditBudgetScreenStates
 import com.example.financetracker.presentation.ui.theme.FinanceTrackerTheme
@@ -82,11 +84,13 @@ fun EditBudgetScreen(
     val startCalendar by remember { viewModel.startCalender }
     val endCalendar by remember { viewModel.endCalender }
     val balanceAmount by remember { viewModel.balanceAmount }
+    val selectedBudgetType by remember { viewModel.selectedBudgetType }
+    val availableBudgetTypes = remember { BudgetType.entries.toList() }
 
     val startDatePicker = DatePickerDialog(
         LocalContext.current,
         { _, year, month, dayOfMonth ->
-            viewModel.setStartDate(dayOfMonth, month, year)
+            viewModel.setStartCalendar(dayOfMonth, month, year)
         },
         startCalendar.get(Calendar.YEAR),
         startCalendar.get(Calendar.MONTH),
@@ -96,7 +100,7 @@ fun EditBudgetScreen(
     val endDatePicker = DatePickerDialog(
         LocalContext.current,
         { _, year, month, dayOfMonth ->
-            viewModel.setEndDate(dayOfMonth, month, year)
+            viewModel.setEndCalender(dayOfMonth, month, year)
         },
         endCalendar.get(Calendar.YEAR),
         endCalendar.get(Calendar.MONTH),
@@ -131,7 +135,7 @@ fun EditBudgetScreen(
     }
 
     LaunchedEffect(key1 = showErrorToast) {
-        if(showErrorToast <= 0){
+        if (showErrorToast <= 0) {
             return@LaunchedEffect
         }
         Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
@@ -182,7 +186,12 @@ fun EditBudgetScreen(
         onTitleTextUpdate = {
             viewModel.updateBudgetTitle(it)
         },
-        balanceAmount = balanceAmount
+        balanceAmount = balanceAmount,
+        availableBudgetTypes = availableBudgetTypes,
+        selectedBudgetType = selectedBudgetType,
+        onSelectBudgetType = {
+            viewModel.updateBudgetType(it)
+        }
     )
 }
 
@@ -205,6 +214,9 @@ private fun EditBudgetScreenContent(
     onCategoryBudgetUpdate: (String, Int) -> Unit = { value: String, index: Int -> },
     onValidateCategoryAmountInput: (String, Int) -> String = { _, _ -> "" },
     balanceAmount: Float,
+    onSelectBudgetType: (BudgetType) -> Unit,
+    selectedBudgetType: BudgetType,
+    availableBudgetTypes: List<BudgetType>,
 ) {
     Scaffold(
         topBar = {
@@ -318,7 +330,54 @@ private fun EditBudgetScreenContent(
                         )
                     }
                 }
+            }
 
+            item {
+                Text(
+                    text = "Select Budget Type",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(vertical = 12.dp)
+                )
+
+                Box(modifier = Modifier.height(8.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp)
+                        .background(
+                            color = Color.Gray.copy(alpha = 0.25f),
+                            shape = RoundedCornerShape(6.dp)
+                        )
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        for (m in availableBudgetTypes) {
+                            Box(
+                                modifier = Modifier
+                                    .background(
+                                        color = if (selectedBudgetType == m)
+                                            Color.Gray.copy(0.45f)
+                                        else Color.Transparent,
+                                        shape = RoundedCornerShape(6.dp)
+                                    )
+                                    .clickable {
+                                        onSelectBudgetType(m)
+                                    }
+                                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                            ) {
+                                androidx.compose.material3.Text(text = m.name)
+                            }
+                        }
+                    }
+                }
+                Box(modifier = Modifier.height(20.dp))
+            }
+
+            item {
                 Row(
                     modifier = Modifier
                         .padding(vertical = 12.dp)
@@ -495,7 +554,10 @@ private fun Preview() {
             budgetName = "June Month Budget",
             categoryBudget = CategoryBudget.getDefaultList(),
             budgetAmountError = "Not a valid number.",
-            balanceAmount = 1000f
+            balanceAmount = 1000f,
+            onSelectBudgetType = {},
+            availableBudgetTypes = BudgetType.entries.toList(),
+            selectedBudgetType = BudgetType.MONTHLY,
         )
     }
 }
