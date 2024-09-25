@@ -76,8 +76,8 @@ import com.example.financetracker.presentation.screens.home.states.EditTransacti
 import com.example.financetracker.presentation.screens.navigation.Routes
 import com.example.financetracker.presentation.ui.theme.FinanceTrackerTheme
 import com.example.financetracker.presentation.viewmodels.EditTransactionViewModel
-import com.example.financetracker.presentation.widgets.BudgetSelectionSheetContent
-import com.example.financetracker.presentation.widgets.CategoryIconCompose
+import com.example.financetracker.presentation.widgets.budget.BudgetSelectionSheetContent
+import com.example.financetracker.presentation.widgets.category.CategoryIconCompose
 import kotlinx.coroutines.launch
 import java.util.Calendar
 

@@ -17,6 +17,7 @@ import com.example.financetracker.domain.model.local.CategoryBudget.Companion.to
 import com.example.financetracker.domain.repository.BudgetRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import java.util.Date
 import javax.inject.Inject
 
@@ -43,6 +44,14 @@ class BudgetRepositoryImpl @Inject constructor(
         val budget = budgetDAO.getById(id)?.toBudget() ?: throw CustomException("Budget not found")
         populateBudgetWithCategoryDetails(budget)
         return budget
+    }
+
+    override suspend fun getBudgetBetween(start: Date, end: Date): List<Budget> {
+        val buds = budgetDAO.getBetween(start, end).map { it.toBudget() }
+        for (b in buds) {
+            populateBudgetWithCategoryDetails(budget = b)
+        }
+        return buds
     }
 
     override fun getBudgetsForTransaction(id: Int): List<Budget> {

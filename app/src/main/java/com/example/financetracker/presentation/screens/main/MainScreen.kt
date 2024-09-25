@@ -1,7 +1,6 @@
 package com.example.financetracker.presentation.screens.main
 
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.FabPosition
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
 import androidx.compose.material.Scaffold
@@ -99,8 +98,6 @@ fun RootScreen(
                 Icon(Icons.Default.Add, contentDescription = "Add Transaction")
             }
         },
-        floatingActionButtonPosition = FabPosition.Center,
-        isFloatingActionButtonDocked = true
     ) {
         MainScreenBottomNavigationGraph(
             bottomNavController = bottomNavController,

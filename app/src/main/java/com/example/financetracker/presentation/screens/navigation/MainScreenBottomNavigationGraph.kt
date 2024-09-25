@@ -6,7 +6,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.financetracker.presentation.screens.AnalysisScreen
+import com.example.financetracker.presentation.screens.analysis.AnalysisScreen
 import com.example.financetracker.presentation.screens.home.BottomNavScreen
 import com.example.financetracker.presentation.screens.home.HomeScreen
 import com.example.financetracker.presentation.screens.profile.ProfileScreen
@@ -25,7 +25,7 @@ fun MainScreenBottomNavigationGraph(
         modifier = modifier
     ) {
         composable(BottomNavScreen.Home.route) { HomeScreen(navController = mainNavController) }
-        composable(BottomNavScreen.Search.route) { AnalysisScreen() }
+        composable(BottomNavScreen.Analysis.route) { AnalysisScreen(navController = mainNavController) }
         composable(BottomNavScreen.Profile.route) { ProfileScreen() }
     }
 }

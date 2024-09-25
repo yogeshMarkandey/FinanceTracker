@@ -1,4 +1,4 @@
-package com.example.financetracker.presentation.widgets
+package com.example.financetracker.presentation.widgets.transaction
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import com.example.financetracker.data.models.local.PaymentType
 import com.example.financetracker.domain.model.local.Transaction
 import com.example.financetracker.presentation.ui.theme.FinanceTrackerTheme
+import com.example.financetracker.presentation.widgets.category.CategoryIconCompose
 
 @Composable
 fun TransactionDetailsWidget(

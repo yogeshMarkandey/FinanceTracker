@@ -59,7 +59,7 @@ import com.example.financetracker.domain.model.local.CategoryBudget
 import com.example.financetracker.presentation.screens.home.states.EditBudgetScreenStates
 import com.example.financetracker.presentation.ui.theme.FinanceTrackerTheme
 import com.example.financetracker.presentation.viewmodels.EditBudgetViewModel
-import com.example.financetracker.presentation.widgets.CategoryIconCompose
+import com.example.financetracker.presentation.widgets.category.CategoryIconCompose
 import java.util.Calendar
 
 @Composable

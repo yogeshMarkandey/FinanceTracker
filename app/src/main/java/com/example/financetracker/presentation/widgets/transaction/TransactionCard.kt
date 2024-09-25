@@ -1,4 +1,4 @@
-package com.example.financetracker.presentation.widgets
+package com.example.financetracker.presentation.widgets.transaction
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth

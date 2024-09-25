@@ -1,4 +1,4 @@
-package com.example.financetracker.presentation.widgets
+package com.example.financetracker.presentation.widgets.budget
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn

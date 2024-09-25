@@ -88,4 +88,8 @@ data class Budget(
             "NA"
         }
     }
+
+    fun getBudgetDuration(): String {
+        return "${getReadableStartDate()}-${getReadableEndDate()}"
+    }
 }
